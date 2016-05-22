@@ -70,6 +70,7 @@ public:
     map< pair< int, int >, phy_link > link;
     vector< vector<double> > traffic_matrix;
     vector<double> source_matrix;
+    vector<double> num_dest_matrix;
 
     phy_graph(graph_info &info);
 

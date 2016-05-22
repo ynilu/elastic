@@ -39,6 +39,7 @@ void phy_graph::read_network_file(char* graph, int num_of_slots)
     // resize vectors according to the number of nodes
     node.resize(number_of_nodes);
     source_matrix.resize(number_of_nodes);
+    num_dest_matrix.resize(number_of_nodes);
     traffic_matrix.resize(number_of_nodes);
     for(auto &element : traffic_matrix)
     {
@@ -87,13 +88,13 @@ void phy_graph::read_source_file(char* source)
         exit(1);
     }
 
-    int node_a, c;
+    int node_a, max_num_dest;
     double node_b;
-    while(fs >> node_a >> node_b >> c)
+    while(fs >> node_a >> node_b >> max_num_dest)
     {
         node_a--;
         source_matrix[node_a] = node_b;
-        // mcast_size_matrix[node_a] = c;
+        num_dest_matrix[node_a] = max_num_dest;
     }
 
     fs.close();
