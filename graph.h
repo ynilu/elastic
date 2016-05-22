@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
-
 struct graph_info
 {
     char* graph;
@@ -45,7 +43,7 @@ class phy_node // physical node
 {
 public:
     int degree;
-    vector<int> neighbour;
+    std::vector<int> neighbour;
     phy_node();
     virtual ~phy_node();
 };
@@ -57,7 +55,7 @@ public:
     int source;
     int destination;
     int distance;
-    vector<int> slot;
+    std::vector<int> slot;
     phy_link();
     virtual ~phy_link();
 };
@@ -66,11 +64,11 @@ public:
 class phy_graph //physical graph
 {
 public:
-    vector<phy_node> node;
-    map< pair< int, int >, phy_link > link;
-    vector< vector<double> > traffic_matrix;
-    vector<double> source_matrix;
-    vector<double> num_dest_matrix;
+        std::vector<phy_node> node;
+        std::map< std::pair< int, int >, phy_link > link;
+        std::vector< std::vector<double> > traffic_matrix;
+        std::vector<double> source_matrix;
+        std::vector<int> num_dest_matrix;
 
     phy_graph(graph_info &info);
 
