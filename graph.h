@@ -77,6 +77,9 @@ public:
     void read_source_file(char* source);
     void read_traffic_file(char* traffic);
 
+    phy_node& get_node(int id);
+    phy_link& get_link(int source, int destination);
+
     virtual ~phy_graph();
 };
 

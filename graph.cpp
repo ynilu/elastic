@@ -12,6 +12,15 @@ phy_graph::~phy_graph()
 
 }
 
+phy_node& phy_graph::get_node(int id)
+{
+    return node[id];
+}
+
+phy_link& phy_graph::get_link(int source, int destination)
+{
+    return link[make_pair(source,destination)];
+}
 void phy_graph::read_network_file(char* graph, int num_of_slots)
 {
     int number_of_nodes;
