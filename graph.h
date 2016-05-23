@@ -9,9 +9,9 @@
 
 struct graph_info
 {
-    char* graph;
-    char* source;
-    char* traffic;
+    char* graph_file;
+    int slot_limit;
+    int connection_limit;
     int num_of_slots;
 };
 
@@ -43,7 +43,7 @@ class phy_node // physical node
 {
 public:
     int degree;
-    std::vector<int> neighbour;
+    std::vector<int> neighbor;
     phy_node();
     virtual ~phy_node();
 };
@@ -64,17 +64,12 @@ public:
 class phy_graph //physical graph
 {
 public:
-        std::vector<phy_node> node;
-        std::map< std::pair< int, int >, phy_link > link;
-        std::vector< std::vector<double> > traffic_matrix;
-        std::vector<double> source_matrix;
-        std::vector<int> num_dest_matrix;
+    std::vector<phy_node> node;
+    std::map< std::pair< int, int >, phy_link > link;
 
     phy_graph(graph_info &info);
 
-    void read_network_file(char* graph, int num_of_slots);
-    void read_source_file(char* source);
-    void read_traffic_file(char* traffic);
+    void read_network_file(char* graph_file, int num_of_slots);
 
     phy_node& get_node(int id);
     phy_link& get_link(int source, int destination);

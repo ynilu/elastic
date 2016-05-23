@@ -1,136 +1,115 @@
 #include "traffic.h"
 
+using namespace std;
+
+traffic::traffic()
+{
+    source_matrix.resize(number_of_nodes);
+    num_dest_matrix.resize(number_of_nodes);
+    traffic_matrix.resize(number_of_nodes);
+
+    for(auto &element : traffic_matrix)
+    {
+        element.resize(number_of_nodes);
+    }
+}
+
+void traffic::read_source_file(char* source_file)
+{
+    fstream fs;
+
+    fs.open(source_file, ios::in);
+    if(!fs)
+    {
+        cerr << "Can't open file\"" << source_file << "\"\n";
+        cerr << "Please give source file, program aborting...\n";
+        exit(1);
+    }
+
+    int node_a, max_num_dest;
+    double source_probility;
+    while(fs >> node_a >> source_probility >> max_num_dest)
+    {
+        node_a--;
+        source_matrix[node_a] = source_probility;
+        num_dest_matrix[node_a] = max_num_dest;
+    }
+
+    fs.close();
+
+}
+
+void traffic::read_traffic_file(char* traffic_file)
+{
+    fstream fs;
+
+    fs.open(traffic_file, ios::in);
+    if(!fs)
+    {
+        cerr << "Can't open file\"" << traffic_file << "\"\n";
+        cerr << "Please give traffic file, program aborting...\n";
+        exit(1);
+    }
+
+    int node_a, node_b;
+    double traffic_probility;
+    while(fs >> node_a >> node_b >> traffic_probility)
+    {
+        node_a--;
+        node_b--;
+        traffic_matrix[node_a][node_b] = traffic_probility;
+    }
+
+    fs.close();
+
+}
 void Generate_traffic()
 {
-//	double event_time = 0;
     double arrival_time = 0;
     for( unsigned int i = 0 ; i < REQUEST_NUMBER ; ++i )
     {
         event arrival;
         event departure;
 
-        arrival.Arrival_or_Departure = 0;
-        departure.Arrival_or_Departure = 1;
-        arrival.event_index = i;
-        departure.event_index = i;
-        //		int temp;
-        bool dest[ NODE_NUMBER ];
-        for( int i=0 ; i<NODE_NUMBER ; i++ )
-        {
-            dest[i] = 0;
-            //multicast
-            //arrival.dest[i] = 0;
-            //departure.dest[i] =0;
-            arrival.dest.clear();
-            departure.dest.clear();
-        }
-        // decide destination set
-        int source;
-        if(READ_TRAFFIC_FILE)
-        {
-            float p = random_number(nextrand(s_seed));
-            for(int i=0;i<NODE_NUMBER;i++){
-                p = p - (float)source_matrix[i];
-                if(p<=0){
-                    source = i;
-                    arrival.source = source;
-                    departure.source = source;
-                    break;
-                }
-            }
-        }else{
-            source = (int) ( NODE_NUMBER*random_number(nextrand(s_seed)) );
-            arrival.source = source;
-            departure.source = source;
-        }
-        int mcast_size;
-        float temp_m = random_number(nextrand(numD_seed));
-        if(READ_TRAFFIC_FILE)
-        {
-            if(temp_m<=unicast_percentage){
-                mcast_size= 0;
-            }else{
-                mcast_size = (int) ( mcast_size_matrix[source]*random_number(nextrand(numD_seed)) );
-            }
-        }else{
-            if(temp_m<=unicast_percentage){
-                mcast_size= 0;
-            }else{
-                mcast_size = (int) ( (NODE_NUMBER-1)*temp_m);
-            }
-        }
-//		if( mcast_size==0 )
-        mcast_size += 1;
+        arrival.type = event::arrival;
+        departure.type = event::departure;
+        arrival.request_id = i;
+        departure.request_id = i;
 
-        arrival.num_d = mcast_size;
-        departure.num_d = mcast_size;
-        //cout<<"s:"<<source<<" m:"<<mcast_size<<" d:";
+        arrival.dest.clear();
+        departure.dest.clear();
+
+        // decide source
+        int source = generate_source(s_seed);
+        arrival.source = source;
+        departure.source = source;
+
+        // decide destination set
+        int num_dest = generate_num_dest();
+        arrival.num_dest = num_dest;
+        departure.num_dest = num_dest;
+
         int count = 0;
-        bool repeat = 0;
         int temp_d;
-        while( count<mcast_size )
+
+        // May be optimized
+        while( count < num_dest )
         {
-            repeat = 0;
-            if(READ_TRAFFIC_FILE)
+            temp_d = generate_destination(s_seed, NODE_NUMBER, );
+
+            if( temp_d != source )
             {
-                float p = random_number(nextrand(s_seed));
-                for(int i=0;i<NODE_NUMBER;i++){
-                    p = p - (float)traffic_matrix[source][i];
-                    if(p<=0){
-                        temp_d = i;
-                        break;
-                    }
-                }
-            }else{
-                temp_d = (int) ( NODE_NUMBER*random_number(nextrand(d_seed)) );
-            }
-            if( temp_d!=source )
-            {
-                for( int j=0 ; j<NODE_NUMBER ; ++j )
+                if( arrival.destination.insert(temp_d).second == true ) // if a new element was inserted
                 {
-                    if( dest[temp_d]==1 )
-                    {
-                        repeat = 1;
-                        break;
-                    }
-                }
-                if( repeat==0 )
-                {
-                    dest[temp_d] = 1;
-                    //multicast
-                    //arrival.dest[temp_d] = 1;
-                    //departure.dest[temp_d] = 1;
-                    arrival.dest.insert(temp_d);
-                    departure.dest.insert(temp_d);
+                    departure.destination.insert(temp_d);
                     total_dest_count[source][temp_d]++;
                     count++;
                 }
             }
         }
 
-        int bandwidth;
-        float temp_b;
-        temp_b = random_number( nextrand(b_seed) );
-        if( temp_b<=0.25 )
-        {
-            bandwidth = 1;//1
-            total_bandwidth_count[0]++;
-        }
-        else if( 0.25<temp_b && temp_b<=0.5)
-        {
-            bandwidth = 3;//3
-            total_bandwidth_count[1]++;
-        }
-        else if( 0.5<temp_b && temp_b<=0.75 )
-        {
-            bandwidth = 12;//12
-            total_bandwidth_count[2]++;
-        }
-        else if( 0.75<temp_b && temp_b<=1 )
-        {
-            bandwidth = 48;
-            total_bandwidth_count[3]++;
-        }
+        int bandwidth = generate_bandwidth(b_seed, b_min, b_max);
+
         arrival.bandwidth = bandwidth;
         departure.bandwidth = bandwidth;
         total_bandwidth += bandwidth;
@@ -139,27 +118,62 @@ void Generate_traffic()
         double holding_time;
         holding_time = get_interarrival_time( TRAFFIC_MU , nextrand(hTime_seed) );
 
-
         arrival.arrival_time = arrival_time;
         arrival.holding_time = holding_time;
+
         event_list.push_back(arrival);
+
         departure.arrival_time = arrival_time + holding_time;
         departure.holding_time = 0;
+
         event_list.push_back(departure);
     }
     event_list.sort();
-    return;
 }
 
-int event::generate_source(int s_seed, int NODE_NUMBER)
+int traffic::generate_num_dest(int& numD_seed, int max_num_dest, float unicast_percentage)
+{
+    int num_dest;
+    float temp_m = random_number(nextrand(numD_seed));
+    if(temp_m <= unicast_percentage){
+        num_dest = 1;
+    }else{
+        num_dest = (int) ( (max_num_dest - 1) * random_number(nextrand(numD_seed)) );
+        num_dest += 2;
+        //num_dest range : [2,max_num_dest]
+    }
+    return num_dest;
+}
+
+int traffic::generate_source(int& s_seed, int NODE_NUMBER, vector<double>& source_matrix)
 {
     float p = random_number(nextrand(s_seed));
-    for(int i=0;i<NODE_NUMBER;i++){
+    for(int i = 0;i < NODE_NUMBER; i++){
         p = p - (float)source_matrix[i];
-        if(p<=0){
+        if(p <= 0){
             return i;
         }
     }
+}
+
+int traffic::generate_destination(int& s_seed, int NODE_NUMBER, vector<double>& traffic_matrix)
+{
+    float p = random_number(nextrand(s_seed));
+    for(int i = 0;i < NODE_NUMBER; i++){
+        p = p - (float)traffic_matrix[i];
+        if(p <= 0){
+            return i;
+        }
+    }
+}
+
+int traffic::generate_bandwidth(int& b_seed, int min, int max)
+{
+    int bandwidth;
+    int num_points = max - min + 1;
+    bandwidth = (int) (num_points * random_number( nextrand(b_seed) ));
+    bandwidth += min;
+    return bandwidth;
 }
 
 bool event::operator <(event a)
@@ -174,7 +188,7 @@ bool event::operator <(event a)
 // ------- Create a random number between 0 and 1 -------
 float traffic::random_number( int seed )
 {
-    return (seed/2147483646.0);
+    return (seed/2147483647.0);
 }
 
 // ------- Get the arrival time or the holding time -------
@@ -184,7 +198,7 @@ double traffic::get_interarrival_time( float mean, int seed )
 }
 
 // ------- Random Number Generator -------
-long long traffic::nextrand( long long &seed )
+long long traffic::nextrand( long long& seed )
 {
     seed = (16807*seed)%(2147483647);
     return seed;

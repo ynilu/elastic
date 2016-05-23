@@ -1,10 +1,10 @@
 #include "graph.h"
 
+using namespace std;
+
 phy_graph::phy_graph(graph_info &info)
 {
-    read_network_file(info.graph, info.num_of_slots);
-    read_source_file(info.source);
-    read_traffic_file(info.traffic);
+    read_network_file(info.graph_file, info.num_of_slots);
 }
 
 phy_graph::~phy_graph()
@@ -21,15 +21,15 @@ phy_link& phy_graph::get_link(int source, int destination)
 {
     return link[make_pair(source,destination)];
 }
-void phy_graph::read_network_file(char* graph, int num_of_slots)
+void phy_graph::read_network_file(char* graph_file, int num_of_slots)
 {
     int number_of_nodes;
     fstream fs;
 
-    fs.open(graph, ios::in);
+    fs.open(graph_file, ios::in);
     if(!fs)
     {
-        cerr << "Can't open file\"" << graph << "\"\n";
+        cerr << "Can't open file\"" << graph_file << "\"\n";
         cerr << "Please give network node file, program aborting...\n";
         exit(1);
     }
@@ -38,13 +38,6 @@ void phy_graph::read_network_file(char* graph, int num_of_slots)
 
     // resize vectors according to the number of nodes
     node.resize(number_of_nodes);
-    source_matrix.resize(number_of_nodes);
-    num_dest_matrix.resize(number_of_nodes);
-    traffic_matrix.resize(number_of_nodes);
-    for(auto &element : traffic_matrix)
-    {
-        element.resize(number_of_nodes);
-    }
 
     int node_a, node_b, distance;
     while(fs >> node_a >> node_b >> distance)
@@ -55,8 +48,8 @@ void phy_graph::read_network_file(char* graph, int num_of_slots)
         node[node_a].degree++;
         node[node_b].degree++;
 
-        node[node_a].neighbour.push_back(node_b);
-        node[node_b].neighbour.push_back(node_a);
+        node[node_a].neighbor.push_back(node_b);
+        node[node_b].neighbor.push_back(node_a);
 
         phy_link new_link;
 
@@ -75,57 +68,6 @@ void phy_graph::read_network_file(char* graph, int num_of_slots)
 
     fs.close();
 }
-
-void phy_graph::read_source_file(char* source)
-{
-    fstream fs;
-
-    fs.open(source, ios::in);
-    if(!fs)
-    {
-        cerr << "Can't open file\"" << source << "\"\n";
-        cerr << "Please give network node file, program aborting...\n";
-        exit(1);
-    }
-
-    int node_a, max_num_dest;
-    double node_b;
-    while(fs >> node_a >> node_b >> max_num_dest)
-    {
-        node_a--;
-        source_matrix[node_a] = node_b;
-        num_dest_matrix[node_a] = max_num_dest;
-    }
-
-    fs.close();
-
-}
-
-void phy_graph::read_traffic_file(char* traffic)
-{
-    fstream fs;
-
-    fs.open(traffic, ios::in);
-    if(!fs)
-    {
-        cerr << "Can't open file\"" << traffic << "\"\n";
-        cerr << "Please give network node file, program aborting...\n";
-        exit(1);
-    }
-
-    int node_a, node_b;
-    double traffic_probility;
-    while(fs >> node_a >> node_b >> traffic_probility)
-    {
-        node_a--;
-        node_b--;
-        traffic_matrix[node_a][node_b] = traffic_probility;
-    }
-
-    fs.close();
-
-}
-
 
 
 phy_node::phy_node()
