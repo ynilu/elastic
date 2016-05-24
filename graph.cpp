@@ -2,9 +2,9 @@
 
 using namespace std;
 
-phy_graph::phy_graph(graph_info &info)
+phy_graph::phy_graph(graph_info &g_info)
 {
-    read_network_file(info.graph_file, info.num_of_slots);
+    read_network_file(g_info.graph_file, g_info.num_slots);
 }
 
 phy_graph::~phy_graph()
@@ -21,9 +21,9 @@ phy_link& phy_graph::get_link(int source, int destination)
 {
     return link[make_pair(source,destination)];
 }
-void phy_graph::read_network_file(char* graph_file, int num_of_slots)
+void phy_graph::read_network_file(char* graph_file, int num_slots)
 {
-    int number_of_nodes;
+    int num_nodes;
     fstream fs;
 
     fs.open(graph_file, ios::in);
@@ -34,10 +34,10 @@ void phy_graph::read_network_file(char* graph_file, int num_of_slots)
         exit(1);
     }
 
-    fs >> number_of_nodes;
+    fs >> num_nodes;
 
     // resize vectors according to the number of nodes
-    node.resize(number_of_nodes);
+    node.resize(num_nodes);
 
     int node_a, node_b, distance;
     while(fs >> node_a >> node_b >> distance)
@@ -56,7 +56,7 @@ void phy_graph::read_network_file(char* graph_file, int num_of_slots)
         new_link.source = node_a;
         new_link.destination = node_b;
         new_link.distance = distance;
-        new_link.slot.resize(num_of_slots);
+        new_link.slot.resize(num_slots);
 
         link[make_pair(node_a,node_b)] = new_link;
 

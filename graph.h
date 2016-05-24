@@ -12,7 +12,7 @@ struct graph_info
     char* graph_file;
     int slot_limit;
     int connection_limit;
-    int num_of_slots;
+    int num_slots;
 };
 
 
@@ -69,7 +69,7 @@ public:
 
     phy_graph(graph_info &info);
 
-    void read_network_file(char* graph_file, int num_of_slots);
+    void read_network_file(char* graph_file, int num_slots);
 
     phy_node& get_node(int id);
     phy_link& get_link(int source, int destination);
