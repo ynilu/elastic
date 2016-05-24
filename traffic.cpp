@@ -2,18 +2,48 @@
 
 using namespace std;
 
-traffic::traffic()
+traffic::traffic(traffic_info& t_info)
 {
-    source_matrix.resize(number_of_nodes);
-    num_dest_matrix.resize(number_of_nodes);
-    traffic_matrix.resize(number_of_nodes);
+    num_nodes = t_info.num_nodes;
+    num_requests = t_info.num_requests;
+    bandwidth_max = t_info.bandwidth_max;
+    bandwidth_min = t_info.bandwidth_min;
+    traffic_lambda = t_info.traffic_lambda;
+    traffic_mu = t_info.traffic_mu;
+    unicast_percentage = t_info.unicast_percentage;
+    aTime_seed = t_info.aTime_seed;
+    hTime_seed = t_info.hTime_seed;
+    s_seed = t_info.s_seed;
+    d_seed = t_info.d_seed;
+    numD_seed = t_info.numD_seed;
+    b_seed = t_info.b_seed;
 
+    // resize the containers for the data read from file
+    source_matrix.resize(num_nodes);
+    num_dest_matrix.resize(num_nodes);
+    traffic_matrix.resize(num_nodes);
     for(auto &element : traffic_matrix)
     {
-        element.resize(number_of_nodes);
+        element.resize(num_nodes);
     }
+
+    total_dest_count.resize(num_nodes);
+    for(auto &element : total_dest_count)
+    {
+        element.resize(num_nodes);
+    }
+
+    read_source_file(t_info.source_file);
+    read_traffic_file(t_info.traffic_file);
+
+    generate_traffic();
+
 }
 
+traffic::~traffic()
+{
+
+}
 void traffic::read_source_file(char* source_file)
 {
     fstream fs;
@@ -63,10 +93,11 @@ void traffic::read_traffic_file(char* traffic_file)
     fs.close();
 
 }
-void Generate_traffic()
+
+void traffic::generate_traffic()
 {
     double arrival_time = 0;
-    for( unsigned int i = 0 ; i < REQUEST_NUMBER ; ++i )
+    for( int i = 0 ; i < num_requests ; ++i )
     {
         event arrival;
         event departure;
@@ -76,26 +107,26 @@ void Generate_traffic()
         arrival.request_id = i;
         departure.request_id = i;
 
-        arrival.dest.clear();
-        departure.dest.clear();
+        arrival.destination.clear();
+        departure.destination.clear();
 
         // decide source
-        int source = generate_source(s_seed);
+        int source = generate_source();
         arrival.source = source;
         departure.source = source;
 
         // decide destination set
-        int num_dest = generate_num_dest();
+        int num_dest = generate_num_dest(source_matrix[source]);
         arrival.num_dest = num_dest;
         departure.num_dest = num_dest;
 
         int count = 0;
         int temp_d;
 
-        // May be optimized
+        // gernerate all destinations (can be optimized)
         while( count < num_dest )
         {
-            temp_d = generate_destination(s_seed, NODE_NUMBER, );
+            temp_d = generate_destination(source);
 
             if( temp_d != source )
             {
@@ -108,15 +139,14 @@ void Generate_traffic()
             }
         }
 
-        int bandwidth = generate_bandwidth(b_seed, b_min, b_max);
+        int bandwidth = generate_bandwidth();
 
         arrival.bandwidth = bandwidth;
         departure.bandwidth = bandwidth;
-        total_bandwidth += bandwidth;
 
-        arrival_time += get_interarrival_time( TRAFFIC_LAMBDA , nextrand(aTime_seed) );
+        arrival_time += get_interarrival_time( traffic_lambda, nextrand(aTime_seed) );
         double holding_time;
-        holding_time = get_interarrival_time( TRAFFIC_MU , nextrand(hTime_seed) );
+        holding_time = get_interarrival_time( traffic_mu, nextrand(hTime_seed) );
 
         arrival.arrival_time = arrival_time;
         arrival.holding_time = holding_time;
@@ -131,7 +161,7 @@ void Generate_traffic()
     event_list.sort();
 }
 
-int traffic::generate_num_dest(int& numD_seed, int max_num_dest, float unicast_percentage)
+int traffic::generate_num_dest(int max_num_dest)
 {
     int num_dest;
     float temp_m = random_number(nextrand(numD_seed));
@@ -145,44 +175,48 @@ int traffic::generate_num_dest(int& numD_seed, int max_num_dest, float unicast_p
     return num_dest;
 }
 
-int traffic::generate_source(int& s_seed, int NODE_NUMBER, vector<double>& source_matrix)
+int traffic::generate_source()
 {
     float p = random_number(nextrand(s_seed));
-    for(int i = 0;i < NODE_NUMBER; i++){
+    int i;
+    for(i = 0; i < num_nodes; i++){
         p = p - (float)source_matrix[i];
         if(p <= 0){
             return i;
         }
     }
+    return i;
 }
 
-int traffic::generate_destination(int& s_seed, int NODE_NUMBER, vector<double>& traffic_matrix)
+int traffic::generate_destination(int source)
 {
     float p = random_number(nextrand(s_seed));
-    for(int i = 0;i < NODE_NUMBER; i++){
-        p = p - (float)traffic_matrix[i];
+    int i;
+    for(i = 0;i < num_nodes; i++){
+        p = p - (float)traffic_matrix[source][i];
         if(p <= 0){
             return i;
         }
     }
+    return i;
 }
 
-int traffic::generate_bandwidth(int& b_seed, int min, int max)
+int traffic::generate_bandwidth()
 {
     int bandwidth;
-    int num_points = max - min + 1;
+    int num_points = bandwidth_max - bandwidth_min + 1;
     bandwidth = (int) (num_points * random_number( nextrand(b_seed) ));
-    bandwidth += min;
+    bandwidth += bandwidth_min;
     return bandwidth;
 }
 
-bool event::operator <(event a)
+bool event::operator <(const event& a) const
 {
-    if( arrival_time < a.arrival_time )
+    if( this -> arrival_time < a.arrival_time )
     {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 // ------- Create a random number between 0 and 1 -------
@@ -202,4 +236,14 @@ long long traffic::nextrand( long long& seed )
 {
     seed = (16807*seed)%(2147483647);
     return seed;
+}
+
+event::event()
+{
+
+}
+
+event::~event()
+{
+
 }

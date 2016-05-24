@@ -6,6 +6,26 @@
 #include <vector>
 #include <fstream>
 #include <list>
+#include <cmath>
+
+struct traffic_info
+{
+    char* source_file;
+    char* traffic_file;
+    int num_nodes;
+    int num_requests;
+    int bandwidth_max;
+    int bandwidth_min;
+    int traffic_lambda;
+    int traffic_mu;
+    float unicast_percentage;
+    long long aTime_seed;
+    long long hTime_seed;
+    long long s_seed;
+    long long d_seed;
+    long long numD_seed;
+    long long b_seed;
+};
 
 class event
 {
@@ -22,7 +42,8 @@ public:
     int bandwidth;
     float arrival_time;
     float holding_time;
-    bool operator<(event);
+    bool operator <(const event&) const;
+
     event();
     virtual ~event();
 };
@@ -31,7 +52,7 @@ public:
 class traffic
 {
 public:
-    traffic();
+    traffic(traffic_info& t_info);
     virtual ~traffic();
 
     std::vector< std::vector<int> > total_dest_count;
@@ -40,12 +61,29 @@ public:
     std::vector<int> num_dest_matrix;
     std::list<event> event_list;
 
-    void read_source_file(char* source);
-    void read_traffic_file(char* traffic);
-    int generate_num_dest(int& numD_seed, int max_num_dest, float unicast_percentage);
-    int generate_source(int& s_seed, int NODE_NUMBER, std::vector<double>& source_matrix);
-    int generate_destination(int& s_seed, int NODE_NUMBER, std::vector<double>& traffic_matrix);
-    int generate_bandwidth(int& b_seed, int min, int max);
+    int num_nodes;
+    int num_requests;
+    int bandwidth_max;
+    int bandwidth_min;
+    int traffic_lambda;
+    int traffic_mu;
+    float unicast_percentage;
+    long long aTime_seed;
+    long long hTime_seed;
+    long long s_seed;
+    long long d_seed;
+    long long numD_seed;
+    long long b_seed;
+
+    void read_source_file(char* source_file);
+    void read_traffic_file(char* traffic_file);
+
+    void generate_traffic();
+
+    int generate_num_dest(int max_num_dest);
+    int generate_source();
+    int generate_destination(int source);
+    int generate_bandwidth();
 
     float random_number( int seed );
     double get_interarrival_time( float mean, int seed );
