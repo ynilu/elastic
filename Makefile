@@ -4,7 +4,7 @@ RM = rm -f
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
-CFLAGS = -g -Wall -O3
+CFLAGS = -g -Wall -O3 -Wno-c++11-extensions
 
 # the option to select USNET or NSFNET, USNET is the default
 # DNSF = -D NSF
@@ -12,8 +12,8 @@ CFLAGS = -g -Wall -O3
 # the build target executable:
 # TARGET = simulator
 
-all: simulator.o graph.o
-	$(PP) $(CFLAGS) -o run_simulator simulator.o graph.o
+all: simulator.o graph.o traffic.o
+	$(PP) $(CFLAGS) -o run_simulator simulator.o graph.o traffic.o
 
 simulator.o: simulator.cpp
 	$(PP) $(CFLAGS) -c simulator.cpp
@@ -21,7 +21,10 @@ simulator.o: simulator.cpp
 graph.o: graph.cpp
 	$(PP) $(CFLAGS) -c graph.cpp
 
+traffic.o: traffic.cpp
+	$(PP) $(CFLAGS) -c traffic.cpp
+
 clean:
-	$(RM) run_simulator
+	$(RM) run_simulator *.o
 
 
