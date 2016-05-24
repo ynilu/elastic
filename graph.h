@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-struct graph_info
+struct Graph_info
 {
     char* graph_file;
     int slot_limit;
@@ -16,65 +16,65 @@ struct graph_info
 };
 
 
-class receiver
+class Receiver
 {
 public:
     int slot_st;  // start number of occupied slots
     int slot_ed;  // end number of occupied slots
 
-    receiver();
-    virtual ~receiver();
+    Receiver();
+    virtual ~Receiver();
 };
 
 
-class transmitter
+class Transmitter
 {
 public:
     int slot_st;  // start number of occupied slots
     int slot_ed;  // end number of occupied slots
 
-    transmitter();
-    virtual ~transmitter();
+    Transmitter();
+    virtual ~Transmitter();
 
 };
 
 
-class phy_node // physical node
+class Phy_node // physical node
 {
 public:
     int degree;
     std::vector<int> neighbor;
-    phy_node();
-    virtual ~phy_node();
+    Phy_node();
+    virtual ~Phy_node();
 };
 
 
-class phy_link // physical link
+class Phy_link // physical link
 {
 public:
     int source;
     int destination;
     int distance;
     std::vector<int> slot;
-    phy_link();
-    virtual ~phy_link();
+    Phy_link();
+    virtual ~Phy_link();
 };
 
 
-class phy_graph //physical graph
+class Phy_graph // physical graph
 {
 public:
-    std::vector<phy_node> node;
-    std::map< std::pair< int, int >, phy_link > link;
+    std::vector<Phy_node> node;
+    std::map< std::pair< int, int >, Phy_link > link;
 
-    phy_graph(graph_info &info);
+    Phy_graph(Graph_info &info);
 
     void read_network_file(char* graph_file, int num_slots);
 
-    phy_node& get_node(int id);
-    phy_link& get_link(int source, int destination);
+    Phy_node& get_node(int id);
+    Phy_link& get_link(int source, int destination);
 
-    virtual ~phy_graph();
+    virtual ~Phy_graph();
 };
 
 #endif

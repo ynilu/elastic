@@ -2,7 +2,7 @@
 
 using namespace std;
 
-traffic::traffic(traffic_info& t_info)
+Traffic::Traffic(Traffic_info& t_info)
 {
     num_nodes = t_info.num_nodes;
     num_requests = t_info.num_requests;
@@ -40,11 +40,11 @@ traffic::traffic(traffic_info& t_info)
 
 }
 
-traffic::~traffic()
+Traffic::~Traffic()
 {
 
 }
-void traffic::read_source_file(char* source_file)
+void Traffic::read_source_file(char* source_file)
 {
     fstream fs;
 
@@ -69,7 +69,7 @@ void traffic::read_source_file(char* source_file)
 
 }
 
-void traffic::read_traffic_file(char* traffic_file)
+void Traffic::read_traffic_file(char* traffic_file)
 {
     fstream fs;
 
@@ -77,7 +77,7 @@ void traffic::read_traffic_file(char* traffic_file)
     if(!fs)
     {
         cerr << "Can't open file\"" << traffic_file << "\"\n";
-        cerr << "Please give traffic file, program aborting...\n";
+        cerr << "Please give Traffic file, program aborting...\n";
         exit(1);
     }
 
@@ -94,16 +94,16 @@ void traffic::read_traffic_file(char* traffic_file)
 
 }
 
-void traffic::generate_traffic()
+void Traffic::generate_traffic()
 {
     double arrival_time = 0;
     for( int i = 0 ; i < num_requests ; ++i )
     {
-        event arrival;
-        event departure;
+        Event arrival;
+        Event departure;
 
-        arrival.type = event::arrival;
-        departure.type = event::departure;
+        arrival.type = Event::arrival;
+        departure.type = Event::departure;
         arrival.request_id = i;
         departure.request_id = i;
 
@@ -161,7 +161,7 @@ void traffic::generate_traffic()
     event_list.sort();
 }
 
-int traffic::generate_num_dest(int max_num_dest)
+int Traffic::generate_num_dest(int max_num_dest)
 {
     int num_dest;
     float temp_m = random_number(nextrand(numD_seed));
@@ -175,7 +175,7 @@ int traffic::generate_num_dest(int max_num_dest)
     return num_dest;
 }
 
-int traffic::generate_source()
+int Traffic::generate_source()
 {
     float p = random_number(nextrand(s_seed));
     int i;
@@ -188,7 +188,7 @@ int traffic::generate_source()
     return i;
 }
 
-int traffic::generate_destination(int source)
+int Traffic::generate_destination(int source)
 {
     float p = random_number(nextrand(s_seed));
     int i;
@@ -201,7 +201,7 @@ int traffic::generate_destination(int source)
     return i;
 }
 
-int traffic::generate_bandwidth()
+int Traffic::generate_bandwidth()
 {
     int bandwidth;
     int num_points = bandwidth_max - bandwidth_min + 1;
@@ -210,7 +210,7 @@ int traffic::generate_bandwidth()
     return bandwidth;
 }
 
-bool event::operator <(const event& a) const
+bool Event::operator <(const Event& a) const
 {
     if( this -> arrival_time < a.arrival_time )
     {
@@ -220,30 +220,30 @@ bool event::operator <(const event& a) const
 }
 
 // ------- Create a random number between 0 and 1 -------
-float traffic::random_number( int seed )
+float Traffic::random_number( int seed )
 {
     return (seed/2147483647.0);
 }
 
 // ------- Get the arrival time or the holding time -------
-double traffic::get_interarrival_time( float mean, int seed )
+double Traffic::get_interarrival_time( float mean, int seed )
 {
     return (-1/mean)*log(1.0-(double)seed/2147483646.0);
 }
 
 // ------- Random Number Generator -------
-long long traffic::nextrand( long long& seed )
+long long Traffic::nextrand( long long& seed )
 {
     seed = (16807*seed)%(2147483647);
     return seed;
 }
 
-event::event()
+Event::Event()
 {
 
 }
 
-event::~event()
+Event::~Event()
 {
 
 }

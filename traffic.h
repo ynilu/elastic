@@ -8,7 +8,7 @@
 #include <list>
 #include <cmath>
 
-struct traffic_info
+struct Traffic_info
 {
     char* source_file;
     char* traffic_file;
@@ -27,7 +27,7 @@ struct traffic_info
     long long b_seed;
 };
 
-class event
+class Event
 {
 public:
     enum event_type{
@@ -42,24 +42,24 @@ public:
     int bandwidth;
     float arrival_time;
     float holding_time;
-    bool operator <(const event&) const;
+    bool operator <(const Event&) const;
 
-    event();
-    virtual ~event();
+    Event();
+    virtual ~Event();
 };
 
 
-class traffic
+class Traffic
 {
 public:
-    traffic(traffic_info& t_info);
-    virtual ~traffic();
+    Traffic(Traffic_info& t_info);
+    virtual ~Traffic();
 
     std::vector< std::vector<int> > total_dest_count;
     std::vector< std::vector<double> > traffic_matrix;
     std::vector<double> source_matrix;
     std::vector<int> num_dest_matrix;
-    std::list<event> event_list;
+    std::list<Event> event_list;
 
     int num_nodes;
     int num_requests;
