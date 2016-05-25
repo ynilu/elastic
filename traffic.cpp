@@ -44,6 +44,7 @@ Traffic::~Traffic()
 {
 
 }
+
 void Traffic::read_source_file(char* source_file)
 {
     fstream fs;
@@ -92,6 +93,30 @@ void Traffic::read_traffic_file(char* traffic_file)
 
     fs.close();
 
+}
+
+bool Traffic::empty()
+{
+    return event_list.empty();
+}
+
+Event Traffic::next_event()
+{
+    Event re = event_list.front();
+    event_list.pop_front();
+    return re;
+}
+
+void Traffic::delete_event(int request_id)
+{
+    for(list<Event>::iterator it = event_list.begin(); it != event_list.end(); it++)
+    {
+        if((*it).type == Event::departure && (*it).request_id == request_id)
+        {
+            event_list.erase(it);
+            break;
+        }
+    }
 }
 
 void Traffic::generate_traffic()

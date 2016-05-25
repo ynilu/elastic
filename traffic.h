@@ -80,6 +80,10 @@ public:
 
     void generate_traffic();
 
+    bool empty();
+    Event next_event();
+    void delete_event(int request_id);
+
     int generate_num_dest(int max_num_dest);
     int generate_source();
     int generate_destination(int source);
