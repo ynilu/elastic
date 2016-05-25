@@ -77,4 +77,4 @@ public:
     virtual ~Phy_graph();
 };
 
-#endif
+#endif /* GRAPH_H */
