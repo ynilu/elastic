@@ -61,11 +61,14 @@ public:
 };
 
 
+typedef std::vector<Phy_node> Phy_node_list;
+typedef std::map< std::pair< int, int >, Phy_link > Phy_link_list;
+
 class Phy_graph // physical graph
 {
 public:
-    std::vector<Phy_node> node;
-    std::map< std::pair< int, int >, Phy_link > link;
+    Phy_node_list node;
+    Phy_link_list link;
 
     Phy_graph(Graph_info &info);
 
