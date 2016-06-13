@@ -27,6 +27,19 @@ struct Traffic_info
     long long b_seed;
 };
 
+class Request
+{
+public:
+    int request_id;
+    int source;
+    std::set<int> destination;
+    int num_dest;
+    int bandwidth;
+    float arrival_time;
+    float holding_time;
+
+};
+
 class Event
 {
 public:
@@ -52,14 +65,12 @@ public:
 class Traffic
 {
 public:
-    Traffic(Traffic_info& t_info);
-    virtual ~Traffic();
-
     std::vector< std::vector<int> > total_dest_count;
     std::vector< std::vector<double> > traffic_matrix;
     std::vector<double> source_matrix;
     std::vector<int> num_dest_matrix;
     std::list<Event> event_list;
+    std::vector<Request> request_list;
 
     int num_nodes;
     int num_requests;
@@ -92,6 +103,10 @@ public:
     float random_number( int seed );
     double get_interarrival_time( float mean, int seed );
     long long nextrand( long long &seed );
+
+    Traffic(Traffic_info& t_info);
+    virtual ~Traffic();
+
 };
 
 

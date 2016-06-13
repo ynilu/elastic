@@ -33,6 +33,8 @@ Traffic::Traffic(Traffic_info& t_info)
         element.resize(num_nodes);
     }
 
+    request_list.resize(num_requests);
+
     read_source_file(t_info.source_file);
     read_traffic_file(t_info.traffic_file);
 

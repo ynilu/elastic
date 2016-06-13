@@ -19,7 +19,7 @@ public:
     };
 
     Aux_node_type type;
-    int id; // auxiliary node id
+    int id;      // auxiliary node id
     int phy_id; // the physical node which this belongs to
 
     Aux_link *first_in, *last_in, *first_out, *last_out;
@@ -32,14 +32,14 @@ class Aux_link
 {
 public:
     enum Aux_link_type{
-        candidate_trail_link,
+        candidate_link,
         spectrum_link,
         grooming_link,
         adding_link,
         dropping_link,
         pass_through_link,
         virtual_adding_link,
-        virtual_dropping_link,
+        virtual_dropping_link
     };
 
     Aux_link_type type;
