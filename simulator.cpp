@@ -17,7 +17,7 @@ int traffic_lambda = 1000;
 int traffic_mu = 1;
 int num_OTDM_transceiver = 400;
 int num_OFDM_transceiver = 400;
-int slot_capacity = 12;
+double slot_capacity = 12.5;
 int transceiver_slot_limit = 20;
 int transceiver_connection_limit = 20;
 
