@@ -1,4 +1,4 @@
-#include "auxiliary.h"
+#include "auxiliary.hpp"
 
 using namespace std;
 

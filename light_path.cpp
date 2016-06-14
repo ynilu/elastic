@@ -1,4 +1,4 @@
-#include "light_path.h"
+#include "light_path.hpp"
 
 LightPath::LightPath()
 {

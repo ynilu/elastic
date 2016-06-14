@@ -1,7 +1,7 @@
-#include "graph.h"
-#include "traffic.h"
-#include "auxiliary.h"
-#include "light_path.h"
+#include "graph.hpp"
+#include "traffic.hpp"
+#include "auxiliary.hpp"
+#include "light_path.hpp"
 #include <iostream>
 #include <cmath>
 

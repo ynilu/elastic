@@ -1,8 +1,8 @@
 #ifndef LIGHT_PATH_H
 #define LIGHT_PATH_H
 
-#include "auxiliary.h"
-#include "graph.h"
+#include "auxiliary.hpp"
+#include "graph.hpp"
 #include <iostream>
 #include <list>
 #include <set>
