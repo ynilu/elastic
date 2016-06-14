@@ -147,7 +147,7 @@ void Phy_graph::DFS_back_trace(int current_node, vector<Parents>& parents, list<
 
         if(modulation != -1)
         {
-            new_path.modulation = modulation;
+            new_path.modulation_level = modulation;
             path_set.push_back(new_path);
         }
     }
