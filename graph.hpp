@@ -116,8 +116,9 @@ public:
     int source;
     int destination;
     int distance;
+    int num_remaining_slots;
     std::vector<int> slot;
-    Phy_link();
+    Phy_link(int);
     virtual ~Phy_link();
 };
 
