@@ -57,6 +57,14 @@ class Aux_graph
 public:
     std::vector<Aux_node*> aux_node;
 
+    Aux_node* get_adding_node(int phy_id);
+    Aux_node* get_dropping_node(int phy_id);
+    Aux_node* get_virtual_transmitting_node(int phy_id);
+    Aux_node* get_virtual_receiving_node(int phy_id);
+
+    Aux_node* create_aux_node(int phy_id, Aux_node::Aux_node_type type);
+    Aux_link* create_aux_link(Aux_node* from, Aux_node* to, double weight, Aux_link::Aux_link_type type);
+
     Aux_graph(int num_phy_node, int num_slots);
     virtual ~Aux_graph();
 };
