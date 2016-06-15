@@ -9,7 +9,7 @@ using namespace std;
 
 float unicast_percentage = 1.0;
 int num_requests = 10;
-int num_slots = 360;
+int num_slots = 320;
 int num_nodes;
 int bandwidth_max = 50;
 int bandwidth_min = 1;
@@ -144,6 +144,9 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
     {
         for(int destination = 0; destination < num_nodes; destination++)
         {
+            if(source == destination){
+                break;
+            }
             LightPath *new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
             // LightPath *new_OFDM_lp = get_best_new_OFDM_light_path();
             // LightPath *groomed_OFDM_lp = get_best_groomed_OFDM_light_path();
@@ -162,11 +165,11 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
 
 void build_candidate_link(Event& event, Phy_graph& p_graph, Aux_graph& a_graph, LightPath* lpath)
 {
-    int source = lpath.p_path.front();
-    int destination = lpath.p_path.back();
+    int source = lpath->p_path.front();
+    int destination = lpath->p_path.back();
     Aux_node* v_t_node = a_graph.get_virtual_transmitting_node(source);
     Aux_node* v_r_node = a_graph.get_virtual_receiving_node(destination);
-    a_graph.create_aux_link(v_t_node, v_r_node, lpath.weight, Aux_link::candidate_link);
+    a_graph.create_aux_link(v_t_node, v_r_node, lpath->weight, Aux_link::candidate_link);
 }
 
 bool spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
