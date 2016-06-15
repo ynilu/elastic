@@ -50,7 +50,8 @@ double extra_used_transmitter_back=0;
 double extra_used_receiver=0;
 double extra_used_receiver_back=0;
 
-void construct_candidate_path(Event& event, Phy_graph& p_graph);
+void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
+void build_candidate_link(Event& event, Phy_graph& p_graph, Aux_graph& a_graph, LightPath* lpath);
 LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_new_OFDM_light_path();
 LightPath* get_best_groomed_OFDM_light_path();
@@ -124,7 +125,7 @@ int main(int argc, char *argv[])
         if(event.type == Event::arrival)
         {
             // cout << "arrival :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
-            construct_candidate_path(event, p_graph);
+            construct_candidate_path(event, p_graph, a_graph);
             // construct_exist_path();
         }
         else // if(event.type == Event::departure)
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void construct_candidate_path(Event& event, Phy_graph& p_graph)
+void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
 {
     for(int source = 0; source < num_nodes; source++)
     {
@@ -157,6 +158,15 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph)
     // delete new_OTDM_lp;
     // delete new_OFDM_lp;
     // delete groomed_OFDM_lp;
+}
+
+void build_candidate_link(Event& event, Phy_graph& p_graph, Aux_graph& a_graph, LightPath* lpath)
+{
+    int source = lpath.p_path.front();
+    int destination = lpath.p_path.back();
+    Aux_node* v_t_node = a_graph.get_virtual_transmitting_node(source);
+    Aux_node* v_r_node = a_graph.get_virtual_receiving_node(destination);
+    a_graph.create_aux_link(v_t_node, v_r_node, lpath.weight, Aux_link::candidate_link);
 }
 
 bool spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
