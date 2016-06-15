@@ -1,12 +1,13 @@
 #ifndef LIGHT_PATH_H
 #define LIGHT_PATH_H
 
-#include "auxiliary.hpp"
 #include "graph.hpp"
 #include <iostream>
 #include <vector>
 #include <list>
 #include <set>
+
+class Aux_link;
 
 class LightPath
 {

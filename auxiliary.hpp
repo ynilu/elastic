@@ -1,6 +1,7 @@
 #ifndef AUXILIARY_H
 #define AUXILIARY_H
 
+#include "light_path.hpp"
 #include <iostream>
 #include <vector>
 
@@ -41,6 +42,8 @@ public:
         virtual_adding_link,
         virtual_dropping_link
     };
+
+    LightPath* light_path; // the light path which this link represents
 
     Aux_link_type type;
     double weight;

@@ -4,6 +4,7 @@
 #include "light_path.hpp"
 #include <iostream>
 #include <cmath>
+#include <list>
 
 using namespace std;
 
@@ -50,8 +51,11 @@ double extra_used_transmitter_back=0;
 double extra_used_receiver=0;
 double extra_used_receiver_back=0;
 
+list<LightPath*> candidate_light_path_list;
+list<LightPath*> exist_light_path_list;
+
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
-void build_candidate_link(Event& event, Phy_graph& p_graph, Aux_graph& a_graph, LightPath* lpath);
+void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
 LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_new_OFDM_light_path();
 LightPath* get_best_groomed_OFDM_light_path();
@@ -163,13 +167,19 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
     // delete groomed_OFDM_lp;
 }
 
-void build_candidate_link(Event& event, Phy_graph& p_graph, Aux_graph& a_graph, LightPath* lpath)
+void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
 {
     int source = lpath->p_path.front();
     int destination = lpath->p_path.back();
     Aux_node* v_t_node = a_graph.get_virtual_transmitting_node(source);
     Aux_node* v_r_node = a_graph.get_virtual_receiving_node(destination);
-    a_graph.create_aux_link(v_t_node, v_r_node, lpath->weight, Aux_link::candidate_link);
+    Aux_link* c_link = a_graph.create_aux_link(v_t_node, v_r_node, lpath->weight, Aux_link::candidate_link);
+
+    c_link->light_path = lpath;              // make aux_link track light path
+
+    lpath->aux_link_list.push_back(c_link);  // make light path track aux_link
+
+    candidate_light_path_list.push_back(lpath);
 }
 
 bool spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
