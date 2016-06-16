@@ -118,6 +118,7 @@ public:
     int distance;
     int num_remaining_slots;
     std::vector<int> slot; // -1: free; 0: guardband; others: occupied time slots
+    Phy_link();
     Phy_link(int);
     virtual ~Phy_link();
 };

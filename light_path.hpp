@@ -4,7 +4,7 @@
 #include "auxiliary.hpp"
 #include "graph.hpp"
 #include <iostream>
-#incldue <vector>
+#include <vector>
 #include <list>
 #include <set>
 

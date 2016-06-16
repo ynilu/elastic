@@ -206,7 +206,7 @@ void Phy_graph::read_network_file(char* graph_file, int num_slots)
         node_list[node_a].neighbor.push_back(node_b);
         node_list[node_b].neighbor.push_back(node_a);
 
-        Phy_link new_link;
+        Phy_link new_link(num_slots);
 
         new_link.source = node_a;
         new_link.destination = node_b;
@@ -234,6 +234,10 @@ Phy_node::Phy_node()
 Phy_node::~Phy_node()
 {
 
+}
+
+Phy_link::Phy_link()
+{
 }
 
 Phy_link::Phy_link(int num_init_slots)
