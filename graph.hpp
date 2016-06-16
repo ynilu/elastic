@@ -162,6 +162,8 @@ public:
 
     Phy_node& get_node(int id);
     Phy_link& get_link(int source, int destination);
+
+
     std::list<CandidatePath>& get_path_list(int source, int destination);
 
     virtual ~Phy_graph();
