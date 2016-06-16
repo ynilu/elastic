@@ -48,6 +48,7 @@ struct Spectrum
 {
     int slot_st;  // start number of occupied slots
     int slot_ed;  // end number of occupied slots
+    double weight;
 };
 
 class Transmitter
