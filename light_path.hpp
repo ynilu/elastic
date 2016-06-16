@@ -26,6 +26,7 @@ public:
     Path p_path;                     // store phy_node_id
     std::vector<int> a_nodes;        // store aux_node_id
 
+
     LightPath();
     virtual ~LightPath();
 };

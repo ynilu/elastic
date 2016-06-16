@@ -149,7 +149,7 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
         for(int destination = 0; destination < num_nodes; destination++)
         {
             if(source == destination){
-                break;
+                continue;
             }
             LightPath *new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
             // LightPath *new_OFDM_lp = get_best_new_OFDM_light_path();
@@ -184,45 +184,57 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
 
 bool spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
-    for(int i = slot_st; i <= slot_ed; i++)
+    int i = slot_ed;
+    if(p_graph.get_link(from, to).slot[i] != -1)
+    {
+        i++;
+        while(p_graph.get_link(from, to).slot[i] != -1)
+        {
+            i++;
+        }
+        return i; // index of first free slot
+    }
+    for(i = slot_ed - 1; i >= slot_st; i--)
     {
         if(p_graph.get_link(from, to).slot[i] != -1)
         {
-            return false;
+            return i + 1; // index of first free slot
         }
     }
-    return true;
+    return -1; // specturm available
 }
 
-bool path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_graph)
+int path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
     for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
     {
         int from = path[node_i];
         int to = path[node_i + 1];
-
-        if(!spectrum_available(from, to, slot_st, slot_ed, p_graph))
+        int next_start =  spectrum_available(from, to, slot_st, slot_ed, p_graph);
+        if(next_start > 0);
         {
-            return false;
+            return next_start;
         }
     }
-    return true;
+    return -1; // specturn available
 }
 
 Spectrum find_best_spectrum(Path path, int require_slots, Phy_graph& p_graph)
 {
-    int slot_st;
+    int slot_st = 0;
     int slot_ed;
     Spectrum sp;
-    for(slot_st = 0; slot_st <= num_slots - require_slots; slot_st++)
+    while(slot_st <= num_slots - require_slots)
     {
         slot_ed = slot_st + require_slots - 1;
-        if(path_spectrum_available(path, slot_st, slot_ed, p_graph))
+        int next_start = path_spectrum_available(path, slot_st, slot_ed, p_graph); 
+        if(next_start < 0) // spectrum_available
         {
             sp.slot_st = slot_st;
             sp.slot_ed = slot_ed;
             return sp;
         }
+        slot_st = next_start;
     }
     sp.slot_st = -1;
     sp.slot_ed = -1;
@@ -249,16 +261,11 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     for(auto &c_path : c_path_list)
     {
         int require_slots = ceil(1.0 * event.bandwidth / c_path.modulation_level / slot_capacity);
-        Spectrum sp = find_best_spectrum(c_path.path, require_slots, p_graph);
-        if(sp.slot_st == -1)
         {
             // TODO skip this path
         }
     }
-
-
     // TODO new LightPath and return
-
 }
 
 LightPath* get_best_new_OFDM_light_path()

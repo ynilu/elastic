@@ -116,8 +116,10 @@ public:
     int source;
     int destination;
     int distance;
-    std::vector<int> slot;
+    int num_remaining_slots;
+    std::vector<int> slot; // -1: free; 0: guardband; others: occupied time slots
     Phy_link();
+    Phy_link(int);
     virtual ~Phy_link();
 };
 
@@ -160,6 +162,8 @@ public:
 
     Phy_node& get_node(int id);
     Phy_link& get_link(int source, int destination);
+
+
     std::list<CandidatePath>& get_path_list(int source, int destination);
 
     virtual ~Phy_graph();
