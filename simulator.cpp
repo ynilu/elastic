@@ -162,16 +162,26 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph)
     // delete groomed_OFDM_lp;
 }
 
-bool spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
+int spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
-    for(int i = slot_st; i <= slot_ed; i++)
+    int i = slot_ed;
+    if(p_graph.get_link(from, to).slot[i] != -1)
+    {
+        i++;
+        while(p_graph.get_link(from, to).slot[i] != -1)
+        {
+            i++;
+        }
+        return i; // index of first free slot
+    }
+    for(i = slot_ed - 1; i >= slot_st; i--)
     {
         if(p_graph.get_link(from, to).slot[i] != -1)
         {
-            return false;
+            return i + 1; // index of first free slot
         }
     }
-    return true;
+    return -1; // specturm available
 }
 
 int path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_graph)
@@ -180,29 +190,31 @@ int path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_gr
     {
         int from = path[node_i];
         int to = path[node_i + 1];
-
-        if(!spectrum_available(from, to, slot_st, slot_ed, p_graph))
+        int next_start =  spectrum_available(from, to, slot_st, slot_ed, p_graph);
+        if(next_start > 0);
         {
-            return false;
+            return next_start;
         }
     }
-    return true;
+    return -1; // specturn available
 }
 
 Spectrum find_best_spectrum(Path path, int require_slots, Phy_graph& p_graph)
 {
-    int slot_st;
+    int slot_st = 0;
     int slot_ed;
     Spectrum sp;
-    for(slot_st = 0; slot_st <= num_slots - require_slots; slot_st++)
+    while(slot_st <= num_slots - require_slots)
     {
         slot_ed = slot_st + require_slots - 1;
-        if(path_spectrum_available(path, slot_st, slot_ed, p_graph))
+        int next_start = path_spectrum_available(path, slot_st, slot_ed, p_graph); 
+        if(next_start < 0) // spectrum_available
         {
             sp.slot_st = slot_st;
             sp.slot_ed = slot_ed;
             return sp;
         }
+        slot_st = next_start;
     }
     sp.slot_st = -1;
     sp.slot_ed = -1;
