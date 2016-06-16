@@ -9,6 +9,7 @@ tags
 .tags
 !tags/
 gtags.files
+GSYMS
 GTAGS
 GRTAGS
 GPATH
