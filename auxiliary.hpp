@@ -58,7 +58,7 @@ public:
 class Aux_graph
 {
 public:
-    std::vector<Aux_node*> aux_node;
+    std::vector<Aux_node*> aux_node_list;
 
     Aux_node* get_adding_node(int phy_id);
     Aux_node* get_dropping_node(int phy_id);

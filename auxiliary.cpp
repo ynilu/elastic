@@ -140,7 +140,7 @@ Aux_graph::Aux_graph(int num_phy_node, int num_slots)
 {
 
     // reserve space for all possible auxiliary nodes
-    aux_node.reserve((num_slots + 2) * num_phy_node);
+    aux_node_list.reserve((num_slots + 2) * num_phy_node);
 
     Aux_node* a_node;   // adding node
     Aux_node* d_node;   // dropping node
@@ -163,17 +163,17 @@ Aux_graph::Aux_graph(int num_phy_node, int num_slots)
 
 Aux_graph::~Aux_graph()
 {
-    while (!aux_node.empty())
+    while (!aux_node_list.empty())
     {
-        delete aux_node.back();
-        aux_node.pop_back();
+        delete aux_node_list.back();
+        aux_node_list.pop_back();
     }
 }
 
 Aux_node* Aux_graph::create_aux_node(int phy_id, Aux_node::Aux_node_type type)
 {
-    Aux_node* new_node = new Aux_node(aux_node.size(), phy_id, type);
-    aux_node.push_back(new_node);
+    Aux_node* new_node = new Aux_node(aux_node_list.size(), phy_id, type);
+    aux_node_list.push_back(new_node);
     return new_node;
 }
 
@@ -185,20 +185,20 @@ Aux_link* Aux_graph::create_aux_link(Aux_node* from, Aux_node* to, double weight
 
 Aux_node* Aux_graph::get_adding_node(int phy_id)
 {
-    return aux_node[4 * phy_id + 0];
+    return aux_node_list[4 * phy_id + 0];
 }
 
 Aux_node* Aux_graph::get_dropping_node(int phy_id)
 {
-    return aux_node[4 * phy_id + 1];
+    return aux_node_list[4 * phy_id + 1];
 }
 
 Aux_node* Aux_graph::get_virtual_transmitting_node(int phy_id)
 {
-    return aux_node[4 * phy_id + 2];
+    return aux_node_list[4 * phy_id + 2];
 }
 
 Aux_node* Aux_graph::get_virtual_receiving_node(int phy_id)
 {
-    return aux_node[4 * phy_id + 3];
+    return aux_node_list[4 * phy_id + 3];
 }
