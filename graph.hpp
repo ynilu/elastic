@@ -4,13 +4,13 @@
 #include <iostream>
 #include <vector>
 #include <list>
-#include <map>
 #include <set>
 #include <queue>
 #include <utility>
 #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <map>
 
 const double LAUNCH_OSNR = 24.5; // not decided yet
 const double LAUNCH_POWER_DENSITY = 30;
@@ -148,7 +148,6 @@ public:
     Phy_link_list link_list;
     Candidate_path_list path_list;
 
-    Phy_graph(Graph_info &info);
 
     void read_network_file(char* graph_file, int num_slots);
 
@@ -166,6 +165,7 @@ public:
 
     std::list<CandidatePath>& get_path_list(int source, int destination);
 
+    Phy_graph(Graph_info &info);
     virtual ~Phy_graph();
 };
 
