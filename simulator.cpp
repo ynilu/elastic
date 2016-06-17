@@ -2,6 +2,10 @@
 #include "traffic.hpp"
 #include "auxiliary.hpp"
 #include "light_path.hpp"
+
+#include <cfloat>
+#include <queue>
+#include <map>
 #include <iostream>
 #include <cmath>
 #include <list>
@@ -53,6 +57,13 @@ double extra_used_receiver_back=0;
 
 list<LightPath*> candidate_light_path_list;
 list<LightPath*> exist_light_path_list;
+
+typedef map<Aux_node*, double> Aux_node2Double;
+typedef map<Aux_node*, Aux_link*> Aux_node2Aux_link;
+typedef map<Aux_node*, bool> Aux_node2Bool;
+
+Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
+void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
@@ -276,5 +287,56 @@ LightPath* get_best_new_OFDM_light_path()
 LightPath* get_best_groomed_OFDM_light_path()
 {
 
+}
+
+
+Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)
+{
+    Aux_node2Double distTo;
+    Aux_node2Aux_link edgeTo;
+    Aux_node2Bool onQueue;
+
+    queue<Aux_node*> queue;
+
+    for(auto &v : a_graph.aux_node_list)
+        distTo[v] = DBL_MAX;
+    distTo[s] = 0.0;
+
+    Aux_node* v;
+
+    // Bellman-Ford algorithm
+    queue.push(s);
+    onQueue[s] = true;
+    while (!queue.empty())
+    {
+        v = queue.front();
+        queue.pop();
+        onQueue[v] = false;
+        relax(v, distTo, edgeTo, onQueue, queue);
+    }
+
+    return edgeTo;
+}
+
+// relax vertex v and put other endpoints on queue if changed
+void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue)
+{
+    Aux_link* link;
+    Aux_node* w;
+
+    for(link = v->first_out; link != NULL; link = link->next_same_from)
+    {
+        w = link->to;
+        if (distTo[w] > distTo[v] + link->weight)
+        {
+            distTo[w] = distTo[v] + link->weight;
+            edgeTo[w] = link;
+            if (!onQueue[w])
+            {
+                queue.push(w);
+                onQueue[w] = true;
+            }
+        }
+    }
 }
 
