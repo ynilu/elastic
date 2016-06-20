@@ -232,7 +232,7 @@ int spectrum_available(Phy_link& link, int slot_st, int slot_ed, Phy_graph& p_gr
     return -1; // specturm available
 }
 
-int path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_graph)
+int path_spectrum_available(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
     for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
     {
