@@ -186,13 +186,26 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
     candidate_light_path_list.push_back(lpath);
 }
 
-int spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_graph)
+int num_spectrum_available(Phy_link& link, int slot_st, int slot_ed, Phy_graph& p_graph)
+{
+    int num_available = 0;
+    for(i = slot_st; i <= slot_ed; i++)
+    {
+        if(link.slot[i] == -1)
+        {
+            num_available++;
+        }
+    }
+    return num_available;
+}
+
+int spectrum_available(Phy_link& link, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
     int i = slot_ed;
-    if(p_graph.get_link(from, to).slot[i] != -1)
+    if(link.slot[i] != -1)
     {
         i++;
-        while(p_graph.get_link(from, to).slot[i] != -1)
+        while(link.slot[i] != -1)
         {
             i++;
         }
@@ -200,7 +213,7 @@ int spectrum_available(int from, int to, int slot_st, int slot_ed, Phy_graph& p_
     }
     for(i = slot_ed - 1; i >= slot_st; i--)
     {
-        if(p_graph.get_link(from, to).slot[i] != -1)
+        if(link.slot[i] != -1)
         {
             return i + 1; // index of first free slot
         }
@@ -214,7 +227,8 @@ int path_spectrum_available(Path path, int slot_st, int slot_ed, Phy_graph& p_gr
     {
         int from = path[node_i];
         int to = path[node_i + 1];
-        int next_start =  spectrum_available(from, to, slot_st, slot_ed, p_graph);
+        Phy_link& link = p_graph.get_link(from, to);
+        int next_start =  spectrum_available(link, slot_st, slot_ed, p_graph);
         if(next_start > 0);
         {
             return next_start;
@@ -232,9 +246,10 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
     {
         int from = path[node_i];
         int to = path[node_i + 1];
+        Phy_link& link = p_graph.get_link(from, to);
         for(int i = 1; i < search_scope; i++)
         {
-            if(p_graph.get_link(from, to).slot[slot_st - i] == 0)
+            if(link.slot[slot_st - i] == 0)
             {
                 distance += i;
                 zone_clear = false;
@@ -243,7 +258,7 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
         }
         for(int i = 1; i < search_scope; i++)
         {
-            if(p_graph.get_link(from, to).slot[slot_ed + i] == 0)
+            if(link.slot[slot_ed + i] == 0)
             {
                 distance += i;
                 zone_clear = false;
@@ -260,15 +275,16 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
     int num_cut = 0;
+    Phy_link& link = p_graph.get_link(from, to);
     for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
     {
         int from = path[node_i];
         int to = path[node_i + 1];
-        if(p_graph.get_link(from, to).slot[slot_st - 1] == -1)
+        if(link.slot[slot_st - 1] == -1)
         {
             num_cut++;
         }
-        if(p_graph.get_link(from, to).slot[slot_ed + 1] == -1)
+        if(link.slot[slot_ed + 1] == -1)
         {
             num_cut++;
         }
@@ -278,7 +294,7 @@ int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 
 int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
-    int align_num = 0;
+    int num_align = 0;
     for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
     {
         int from = path[node_i];
@@ -289,21 +305,17 @@ int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
             {
                 continue;
             }
-            if(spectrum_available(from, w, slot_st, slot_ed, p_graph) < 0)
-            {
-                align_num++;
-            }
+            Phy_link& link = p_graph.get_link(w, from);
+            num_align += num_spectrum_available(link, slot_st, slot_ed, p_graph);
         }
         for(auto &v : p_graph.get_node(to).neighbor)
         {
-            if(w == from)
+            if(v == from)
             {
                 continue;
             }
-            if(spectrum_available(from, v, slot_st, slot_ed, p_graph) < 0)
-            {
-                align_num++;
-            }
+            Phy_link& link = p_graph.get_link(to, v); 
+            num_align += num_spectrum_available(link, slot_st, slot_ed, p_graph);
         }
     }
     return num_align;
@@ -311,13 +323,11 @@ int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 
 double weigh_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 {
-    double distance = get_distance(path, int slot_st, int slot_ed, Phy_graph &p_graph);
-    double num_cut = get_cut_num(path, int slot_st, int slot_ed, Phy_graph &p_graph);
-    double num_align = get_align_num(Path path, int slot_st, int slot_ed, Phy_graph &p_graph);
+    double distance = get_distance(path, slot_st, slot_ed, p_graph);
+    double num_cut = get_cut_num(path, slot_st, slot_ed, p_graph);
+    double num_align = get_align_num(path, slot_st, slot_ed, p_graph);
     return reserved_coefficent * (1 / (distance + 1)) + cut_coeffcient * num_cut + align_coeffcient * num_align;
 }
-
-
 
 Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
 {
@@ -351,7 +361,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
         return NULL;
     }
 
-    if(src_node.num_available_receiver < 1)
+    if(dst_node.num_available_receiver < 1)
     {
         return NULL;
     }
