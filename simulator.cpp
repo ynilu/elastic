@@ -455,6 +455,7 @@ Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)
     return edgeTo;
 }
 
+// if the distance to specific node is not element in map, assign the max value of double to it
 double get_dist(Aux_node2Double& distTo, Aux_node* node)
 {
     if(distTo.find(node) == distTo.end())
