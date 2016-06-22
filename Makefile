@@ -27,7 +27,7 @@ traffic.o: traffic.cpp
 auxiliary.o: auxiliary.cpp
 	$(CXX) $(CFLAGS) -c auxiliary.cpp
 
-auxiliary.o: light_path.cpp
+light_path.o: light_path.cpp
 	$(CXX) $(CFLAGS) -c light_path.cpp
 
 clean:
