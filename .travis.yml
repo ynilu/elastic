@@ -16,3 +16,11 @@ before_script:
 script:
   - ls -al
   - make
+
+notifications:
+  email:
+    recipients:
+      - michael142536@gmail.com 
+      - alanwanga@yahoo.com.tw
+    on_success: change
+    on_failure: always
