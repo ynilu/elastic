@@ -12,8 +12,8 @@ CFLAGS = -g -Wall -O3 -Wno-c++11-extensions -std=c++11
 # the build target executable:
 # TARGET = simulator
 
-all: simulator.o graph.o traffic.o auxiliary.o
-	$(CXX) $(CFLAGS) -o run_simulator simulator.o graph.o traffic.o auxiliary.o
+all: simulator.o graph.o traffic.o auxiliary.o light_path.o
+	$(CXX) $(CFLAGS) -o run_simulator simulator.o graph.o traffic.o auxiliary.o light_path.o
 
 simulator.o: simulator.cpp
 	$(CXX) $(CFLAGS) -c simulator.cpp
@@ -26,6 +26,9 @@ traffic.o: traffic.cpp
 
 auxiliary.o: auxiliary.cpp
 	$(CXX) $(CFLAGS) -c auxiliary.cpp
+
+auxiliary.o: light_path.cpp
+	$(CXX) $(CFLAGS) -c light_path.cpp
 
 clean:
 	$(RM) run_simulator *.o
