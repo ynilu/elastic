@@ -5,7 +5,7 @@
 
 #include <cfloat>
 #include <queue>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 #include <cmath>
 #include <list>
@@ -63,9 +63,9 @@ double align_coeffcient = 10;
 list<LightPath*> candidate_light_path_list;
 list<LightPath*> exist_light_path_list;
 
-typedef map<Aux_node*, double> Aux_node2Double;
-typedef map<Aux_node*, Aux_link*> Aux_node2Aux_link;
-typedef map<Aux_node*, bool> Aux_node2Bool;
+typedef unordered_map<Aux_node*, double> Aux_node2Double;
+typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
+typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
 Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
@@ -410,8 +410,6 @@ Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)
 
     queue<Aux_node*> queue;
 
-    for(auto &v : a_graph.aux_node_list)
-        distTo[v] = DBL_MAX;
     distTo[s] = 0.0;
 
     Aux_node* v;
@@ -430,6 +428,15 @@ Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)
     return edgeTo;
 }
 
+double get_dist(Aux_node2Double& distTo, Aux_node* node)
+{
+    if(distTo.find(node) == distTo.end())
+    {
+        distTo[node] = DBL_MAX;
+    }
+    return distTo[node];
+}
+
 // relax vertex v and put other endpoints on queue if changed
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue)
 {
@@ -439,11 +446,11 @@ void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_
     for(link = v->first_out; link != NULL; link = link->next_same_from)
     {
         w = link->to;
-        if (distTo[w] > distTo[v] + link->weight)
+        if(get_dist(distTo, w) > get_dist(distTo, v) + link->weight)
         {
             distTo[w] = distTo[v] + link->weight;
             edgeTo[w] = link;
-            if (!onQueue[w])
+            if(!onQueue[w])
             {
                 queue.push(w);
                 onQueue[w] = true;

@@ -20,12 +20,11 @@ public:
     };
 
     Aux_node_type type;
-    int id;      // auxiliary node id
     int phy_id; // the physical node which this belongs to
 
     Aux_link *first_in, *last_in, *first_out, *last_out;
 
-    Aux_node(int id, int phy_id, Aux_node_type type);
+    Aux_node(int phy_id, Aux_node_type type);
     virtual ~Aux_node();
 };
 
@@ -58,7 +57,10 @@ public:
 class Aux_graph
 {
 public:
-    std::vector<Aux_node*> aux_node_list;
+    std::vector<Aux_node*> adding_node_list;
+    std::vector<Aux_node*> dropping_node_list;
+    std::vector<Aux_node*> virtual_transmitting_node_list;
+    std::vector<Aux_node*> virtual_receiving_node_list;
 
     Aux_node* get_adding_node(int phy_id);
     Aux_node* get_dropping_node(int phy_id);
