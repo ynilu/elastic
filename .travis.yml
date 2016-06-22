@@ -1,5 +1,5 @@
 # Ubuntu 14.04 Trusty support
-sudo: false
+sudo: required
 dist: trusty
 
 language: cpp
