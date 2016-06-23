@@ -68,6 +68,7 @@ typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
 Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
+double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
