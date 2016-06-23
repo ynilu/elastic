@@ -386,7 +386,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     }
 
     int modulation_level;
-    double used_bandwidth;
+    int available_bitrate;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
     Spectrum path_specturm, best_path_spectrum;
 
@@ -399,9 +399,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
         int require_slots = num_guardband_slot * 2 + ceil(1.0 * event.bandwidth / c_path.modulation_level / slot_capacity);
         path_specturm = find_best_spectrum(c_path.path, require_slots, p_graph);
         if(best_path_spectrum.weight > path_specturm.weight){
-           best_path_spectrum.slot_st = path_specturm.slot_st;
-           best_path_spectrum.slot_ed = path_specturm.slot_ed;
-           best_path_spectrum.weight = path_specturm.weight;
+           best_path_spectrum = path_specturm;
            modulation_level = c_path.modulation_level;
            available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
         }
@@ -412,11 +410,9 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     LightPath* path = new LightPath();
     path->type = LightPath::new_OTDM;
     path->modulation_level = modulation_level;
-    path->used_bandwidth = used_bandwidth;
+    path->available_bitrate = available_bitrate;
     path->weight = best_path_spectrum.weight;
-    path->spectrum.slot_st = best_path_spectrum.slot_st;
-    path->spectrum.slot_ed = best_path_spectrum.slot_ed;
-    path->spectrum.weight = best_path_spectrum.weight;
+    path->spectrum = best_path_spectrum;
     return path;
 }
 

@@ -250,6 +250,16 @@ Phy_link::~Phy_link()
 
 }
 
+Spectrum::Spectrum()
+{
+
+}
+
+Spectrum::~Spectrum()
+{
+
+}
+
 Transmitter::Transmitter()
 {
     this->spectrum.slot_st = -1;

@@ -52,7 +52,7 @@ public:
     double weight;
 
     Spectrum();
-    virtual ~Specturm();
+    virtual ~Spectrum();
 };
 
 class Transmitter

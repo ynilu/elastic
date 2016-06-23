@@ -21,7 +21,7 @@ public:
     std::set<int> requests;          // store request_id
     std::list<Aux_link*> aux_link_list;
     int modulation_level;
-    int availalbe_bitrate;
+    int available_bitrate;
     double weight;
     Spectrum spectrum;
     Path p_path;                     // store phy_node_id
