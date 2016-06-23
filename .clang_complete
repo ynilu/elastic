@@ -1,0 +1,3 @@
+-Wall
+-Wno-c++11-extensions
+-std=c++11

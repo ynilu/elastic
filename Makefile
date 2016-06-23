@@ -1,5 +1,5 @@
 # the compiler: gcc for C program, define as g++ for C++
-PP = g++
+CXX ?= g++
 RM = rm -f
 # compiler flags:
 #  -g    adds debugging information to the executable file
@@ -12,20 +12,23 @@ CFLAGS = -g -Wall -O3 -Wno-c++11-extensions -std=c++11
 # the build target executable:
 # TARGET = simulator
 
-all: simulator.o graph.o traffic.o auxiliary.o
-	$(PP) $(CFLAGS) -o run_simulator simulator.o graph.o traffic.o auxiliary.o
+all: simulator.o graph.o traffic.o auxiliary.o light_path.o
+	$(CXX) $(CFLAGS) -o run_simulator simulator.o graph.o traffic.o auxiliary.o light_path.o
 
 simulator.o: simulator.cpp
-	$(PP) $(CFLAGS) -c simulator.cpp
+	$(CXX) $(CFLAGS) -c simulator.cpp
 
 graph.o: graph.cpp
-	$(PP) $(CFLAGS) -c graph.cpp
+	$(CXX) $(CFLAGS) -c graph.cpp
 
 traffic.o: traffic.cpp
-	$(PP) $(CFLAGS) -c traffic.cpp
+	$(CXX) $(CFLAGS) -c traffic.cpp
 
 auxiliary.o: auxiliary.cpp
-	$(PP) $(CFLAGS) -c auxiliary.cpp
+	$(CXX) $(CFLAGS) -c auxiliary.cpp
+
+light_path.o: light_path.cpp
+	$(CXX) $(CFLAGS) -c light_path.cpp
 
 clean:
 	$(RM) run_simulator *.o
