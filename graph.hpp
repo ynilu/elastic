@@ -44,11 +44,15 @@ struct Graph_info
     int transceiver_connection_limit;
 };
 
-struct Spectrum
+class Spectrum
 {
+public:
     int slot_st;   // start number of occupied slots
     int slot_ed;   // end number of occupied slots
     double weight;
+
+    Spectrum();
+    virtual ~Specturm();
 };
 
 class Transmitter
@@ -109,7 +113,6 @@ public:
     Phy_node();
     virtual ~Phy_node();
 };
-
 
 class Phy_link // physical link
 {

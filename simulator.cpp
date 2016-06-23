@@ -402,7 +402,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
            best_path_spectrum.slot_ed = path_specturm.slot_ed;
            best_path_spectrum.weight = path_specturm.weight;
            modulation_level = c_path.modulation_level;
-           used_bandwidth = slot_capacity * num_guardband_slot * 2 + event.bandwidth;
+           available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
         }
     }
     if(best_path_spectrum.slot_st < 0){
@@ -412,7 +412,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     path->type = LightPath::new_OTDM;
     path->modulation_level = modulation_level;
     path->used_bandwidth = used_bandwidth;
-    path->weight = best_path_spectrum.weight;//available num_slots
+    path->weight = best_path_spectrum.weight;
     path->spectrum.slot_st = best_path_spectrum.slot_st;
     path->spectrum.slot_ed = best_path_spectrum.slot_ed;
     path->spectrum.weight = best_path_spectrum.weight;
@@ -421,7 +421,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
 
 LightPath* get_best_new_OFDM_light_path()
 {
-
+ 
 }
 
 LightPath* get_best_groomed_OFDM_light_path()
