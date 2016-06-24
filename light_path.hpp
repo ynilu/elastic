@@ -27,6 +27,11 @@ public:
     Path p_path;                     // store phy_node_id
     std::vector<int> a_nodes;        // store aux_node_id
 
+    // transmitter_index[i] == -1 -> transmitter not used on Phy_node(p_path[i])
+    // transmitter_index[i] == id -> transmitter[id] used on Phy_node(p_path[i])
+    std::vector<int> transmitter_index;
+    std::vector<int> receiver_index;
+
     LightPath();
     virtual ~LightPath();
 };

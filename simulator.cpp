@@ -61,7 +61,8 @@ double cut_coeffcient = 10;
 double align_coeffcient = 10;
 
 list<LightPath*> candidate_light_path_list;
-list<LightPath*> exist_light_path_list;
+list<LightPath*> exist_OTDM_light_path_list;
+list<LightPath*> exist_OFDM_light_path_list;
 
 typedef unordered_map<Aux_node*, double> Aux_node2Double;
 typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
@@ -416,14 +417,232 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     return path;
 }
 
-LightPath* get_best_new_OFDM_light_path()
+int get_available_transceiver(vector<)
 {
- 
+    Phy_node& p_node = p_graph.get_node(p_node_id);
+
+    if(type)
+    for(int i = 0; i < p_node.tr)
+    p_node.
 }
 
-LightPath* get_best_groomed_OFDM_light_path()
+LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 {
+    Phy_node& src_node = p_graph.get_node(source);
+    Phy_node& dst_node = p_graph.get_node(destination);
 
+    if(src_node.num_available_OFDM_transmitter < 1)
+    {
+        return NULL;
+    }
+
+    if(dst_node.num_available_OFDM_receiver < 1)
+    {
+        return NULL;
+    }
+
+    int modulation_level;
+    int available_bitrate;
+    list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
+    Spectrum path_specturm, best_path_spectrum;
+
+    best_path_spectrum.slot_st = -1;
+    best_path_spectrum.slot_ed = -1;
+    best_path_spectrum.weight = DBL_MAX;
+
+    for(auto &c_path : c_path_list)
+    {
+        int require_slots = num_guardband_slot * 2 + ceil(1.0 * event.bandwidth / c_path.modulation_level / slot_capacity);
+        path_specturm = find_best_spectrum(c_path.path, require_slots, p_graph);
+        if(best_path_spectrum.weight > path_specturm.weight){
+           best_path_spectrum = path_specturm;
+           modulation_level = c_path.modulation_level;
+           available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
+        }
+    }
+    if(best_path_spectrum.slot_st < 0){
+        return NULL;
+    }
+    LightPath* path = new LightPath();
+    path->type = LightPath::new_OTDM;
+    path->modulation_level = modulation_level;
+    path->available_bitrate = available_bitrate;
+    path->weight = best_path_spectrum.weight;
+    path->spectrum = best_path_spectrum;
+    path->transmitter_index.resize(path->p_path.size(), -1);
+    path->transmitter_index.front() = ??;
+    path->transmitter_index.back() = ??;
+    return path;
+}
+
+LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+{
+    int modulation_level;
+    int available_bitrate;
+    list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
+    Spectrum path_specturm, best_path_spectrum;
+    double current_weight;
+    LightPath* best_existing_lightpath;
+
+    best_path_spectrum.slot_st = -1;
+    best_path_spectrum.slot_ed = -1;
+    best_path_spectrum.weight = DBL_MAX;
+    best_existing_lightpath = NULL;
+
+    for(auto &lp : exist_OFDM_light_path_list)
+    {
+        int require_slots = num_guardband_slot + ceil(1.0 * event.bandwidth / lp->modulation_level / slot_capacity);
+        int num_used_slots = lp->spectrum.slot_ed - lp->spectrum.slot_st + 1;
+
+        if(source != lp->p_path.front() || destination != lp->p_path.back())
+        {
+            continue;
+        }
+
+        if(transceiver_slot_limit - num_used_slots < require_slots)
+        {
+            continue;
+        }
+
+        int slot_st;
+        int slot_ed;
+
+        // find the spectrum above the exisiting LightPath
+        slot_st = lp->spectrum.slot_st - require_slots;
+        slot_ed = lp->spectrum.slot_st - 1;
+        if(slot_st >= 0 && slot_ed >= 0)
+        {
+            if(path_spectrum_available(lp->p_path, slot_st, slot_ed, p_graph) < 0) // spectrum available
+            {
+                current_weight = weigh_path_spectrum(lp->p_path, slot_st, slot_ed, p_graph);
+                if(current_weight < best_path_spectrum.weight)
+                {
+                    best_path_spectrum.slot_st = slot_st;
+                    best_path_spectrum.slot_ed = slot_ed;
+                    best_path_spectrum.weight = current_weight;
+                    best_existing_lightpath = lp;
+                }
+            }
+        }
+
+        // find the spectrum under the exisiting LightPath
+        slot_st = lp->spectrum.slot_ed + 1;
+        slot_ed = lp->spectrum.slot_ed + require_slots;
+        if(slot_st >= 0 && slot_ed >= 0)
+        {
+            if(path_spectrum_available(lp->p_path, slot_st, slot_ed, p_graph) < 0) // spectrum available
+            {
+                current_weight = weigh_path_spectrum(lp->p_path, slot_st, slot_ed, p_graph);
+                if(current_weight < best_path_spectrum.weight)
+                {
+                    best_path_spectrum.slot_st = slot_st;
+                    best_path_spectrum.slot_ed = slot_ed;
+                    best_path_spectrum.weight = current_weight;
+                    best_existing_lightpath = lp;
+                }
+            }
+        }
+    } // end of for(auto &lp : exist_OFDM_light_path_list)
+
+    if(best_path_spectrum.slot_st < 0){
+        return NULL;
+    }
+
+    LightPath* path = new LightPath();
+    path->type = LightPath::groomed_OFDM;
+    path->modulation_level = best_existing_lightpath->modulation_level;
+    path->weight = best_path_spectrum.weight;
+    path->spectrum = best_path_spectrum;
+    return path;
+}
+
+LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+{
+    // TODO under construction
+    int modulation_level;
+    int available_bitrate;
+    list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
+    Spectrum path_specturm, best_path_spectrum;
+    double current_weight;
+
+    best_path_spectrum.slot_st = -1;
+    best_path_spectrum.slot_ed = -1;
+    best_path_spectrum.weight = DBL_MAX;
+
+    for(auto &lp : exist_OFDM_light_path_list)
+    {
+        int require_slots = num_guardband_slot + ceil(1.0 * event.bandwidth / lp->modulation_level / slot_capacity);
+        int num_used_slots = lp->spectrum.slot_ed - lp->spectrum.slot_st + 1;
+        if(transceiver_slot_limit - num_used_slots < require_slots)
+        {
+            continue;
+        }
+        int split_node = lp->p_path.back();
+        int num_hops = lp->p_path.size();
+        for(int node_i = 0; node_i < num_hops; node_i++)
+        {
+            if(c_path.path[node_i] != lp->p_path[node_i])
+            {
+                split_node = c_path.path[node_i-1];
+            }
+        }
+        if(split_node != lp->p_path.back())
+        {
+            continue;
+        }
+
+        int slot_st;
+        int slot_ed;
+
+        slot_st = lp->spectrum.slot_st - require_slots;
+        slot_ed = lp->spectrum.slot_st - 1;
+        if(slot_st >= 0 && slot_ed >= 0)
+        {
+            if(path_spectrum_available(lp->p_path, slot_st, slot_ed, p_graph) < 0) // spectrum available
+            {
+                current_weight = weigh_path_spectrum(lp->p_path, slot_st, slot_ed, p_graph);
+                if(current_weight < best_path_spectrum.weight)
+                {
+                    best_path_spectrum.slot_st = slot_st;
+                    best_path_spectrum.slot_ed = slot_ed;
+                    best_path_spectrum.weight = current_weight;
+                }
+            }
+        }
+
+        slot_st = lp->spectrum.slot_ed + 1;
+        slot_ed = lp->spectrum.slot_ed + require_slots;
+        if(slot_st >= 0 && slot_ed >= 0)
+        {
+            if(path_spectrum_available(lp->p_path, slot_st, slot_ed, p_graph) < 0) // spectrum available
+            {
+                current_weight = weigh_path_spectrum(lp->p_path, slot_st, slot_ed, p_graph);
+                if(current_weight < best_path_spectrum.weight)
+                {
+                    best_path_spectrum.slot_st = slot_st;
+                    best_path_spectrum.slot_ed = slot_ed;
+                    best_path_spectrum.weight = current_weight;
+                }
+            }
+        }
+    }
+
+    path_specturm = find_best_spectrum(c_path.path, require_slots, p_graph);
+    if(best_path_spectrum.weight > path_specturm.weight){
+        best_path_spectrum = path_specturm;
+        modulation_level = c_path.modulation_level;
+        available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
+    }
+    if(best_path_spectrum.slot_st < 0){
+        return NULL;
+    }
+    LightPath* path = new LightPath();
+    path->type = LightPath::new_OTDM;
+    path->modulation_level = modulation_level;
+    path->available_bitrate = available_bitrate;
+    path->weight = best_path_spectrum.weight;
+    path->spectrum = best_path_spectrum;
+    return path;
 }
 
 Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)

@@ -55,31 +55,21 @@ public:
     virtual ~Spectrum();
 };
 
-class Transmitter
+class Transceiver
 {
 public:
     Spectrum spectrum;
 
-    Transmitter();
-    virtual ~Transmitter();
+    Transceiver();
+    virtual ~Transceiver();
 };
-
-class Receiver
-{
-public:
-    Spectrum spectrum;
-
-    Receiver();
-    virtual ~Receiver();
-};
-
 
 class OFDMTransmitter // OFDM transmitter
 {
 public:
 
     int num_available_sub_transmitter;
-    std::vector<Transmitter> sub_transmitter;
+    std::vector<Transceiver> sub_transmitter;
 
     OFDMTransmitter(int transceiver_connection_limit);
     virtual ~OFDMTransmitter();
@@ -106,7 +96,7 @@ public:
     int num_available_OFDM_transmitter;
     int num_available_receiver;
     int num_available_OFDM_receiver;
-    std::vector<Transmitter> transmitter;
+    std::vector<Transceiver> transmitter;
     std::vector<Receiver> receiver;
     std::vector<OFDMTransmitter> OFDMtransmitter;
     std::vector<OFDMReceiver> OFDMreceiver;
