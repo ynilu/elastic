@@ -72,6 +72,8 @@ public:
     int num_available_sub_transceiver;
     std::vector<Transceiver> sub_transceiver;
 
+    Spectrum spectrum;
+
     OFDMTransceiver(int transceiver_connection_limit);
     virtual ~OFDMTransceiver();
 };
