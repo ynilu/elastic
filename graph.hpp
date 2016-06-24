@@ -64,26 +64,16 @@ public:
     virtual ~Transceiver();
 };
 
-class OFDMTransmitter // OFDM transmitter
+class OFDMTransceiver // OFDM transceiver
 {
 public:
 
-    int num_available_sub_transmitter;
-    std::vector<Transceiver> sub_transmitter;
+    bool in_used;
+    int num_available_sub_transceiver;
+    std::vector<Transceiver> sub_transceiver;
 
-    OFDMTransmitter(int transceiver_connection_limit);
-    virtual ~OFDMTransmitter();
-};
-
-class OFDMReceiver   // OFDM receiver
-{
-public:
-
-    int num_available_sub_receiver;
-    std::vector<Receiver> sub_receiver;
-
-    OFDMReceiver(int transceiver_connection_limit);
-    virtual ~OFDMReceiver();
+    OFDMTransceiver(int transceiver_connection_limit);
+    virtual ~OFDMTransceiver();
 };
 
 
@@ -97,9 +87,9 @@ public:
     int num_available_receiver;
     int num_available_OFDM_receiver;
     std::vector<Transceiver> transmitter;
-    std::vector<Receiver> receiver;
-    std::vector<OFDMTransmitter> OFDMtransmitter;
-    std::vector<OFDMReceiver> OFDMreceiver;
+    std::vector<Transceiver> receiver;
+    std::vector<OFDMTransceiver> OFDMtransmitter;
+    std::vector<OFDMTransceiver> OFDMreceiver;
     Phy_node();
     virtual ~Phy_node();
 };

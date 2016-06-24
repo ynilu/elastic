@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
     //     }
     // }
 
-    cout << p_graph.get_node(0).OFDMtransmitter[0].sub_transmitter.size() << '\n';
+    cout << p_graph.get_node(0).OFDMtransmitter[0].sub_transceiver.size() << '\n';
     cout << p_graph.get_node(0).OFDMtransmitter.size() << '\n';
 
     while( !traffic.empty() )
@@ -417,13 +417,18 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     return path;
 }
 
-int get_available_transceiver(vector<)
+int get_available_transceiver(vector<OFDMTransceiver> transceivers)
 {
-    Phy_node& p_node = p_graph.get_node(p_node_id);
-
-    if(type)
-    for(int i = 0; i < p_node.tr)
-    p_node.
+    for(int i = 0; i < transceivers.size(); i++)
+    {
+        if(transceivers[i].in_used == false)
+        {
+            transceivers[i].in_used = true;
+            return i;
+        }
+    }
+    cout << "error can not find available transceiver\n";
+    return -1;
 }
 
 LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
@@ -470,8 +475,9 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
     path->weight = best_path_spectrum.weight;
     path->spectrum = best_path_spectrum;
     path->transmitter_index.resize(path->p_path.size(), -1);
-    path->transmitter_index.front() = ??;
-    path->transmitter_index.back() = ??;
+    path->receiver_index.resize(path->p_path.size(), -1);
+    path->transmitter_index.front() = get_available_transceiver(src_node.OFDMtransmitter);
+    path->receiver_index.back() = get_available_transceiver(src_node.OFDMreceiver);
     return path;
 }
 

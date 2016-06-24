@@ -72,10 +72,10 @@ void Phy_graph::assign_transceivers(int num_OTDM_transceiver, int num_OFDM_trans
         node.receiver.resize(num_OTDM_transceiver);
         node.num_available_receiver = num_OTDM_transceiver;
 
-        node.OFDMtransmitter.resize(transceiver_connection_limit, OFDMTransmitter(transceiver_connection_limit));
+        node.OFDMtransmitter.resize(transceiver_connection_limit, OFDMTransceiver(transceiver_connection_limit));
         node.num_available_OFDM_transmitter = num_OFDM_transceiver;
 
-        node.OFDMreceiver.resize(transceiver_connection_limit, OFDMReceiver(transceiver_connection_limit));
+        node.OFDMreceiver.resize(transceiver_connection_limit, OFDMTransceiver(transceiver_connection_limit));
         node.num_available_OFDM_receiver = num_OFDM_transceiver;
     }
 }
@@ -260,47 +260,25 @@ Spectrum::~Spectrum()
 
 }
 
-Transmitter::Transmitter()
+Transceiver::Transceiver()
 {
     this->spectrum.slot_st = -1;
     this->spectrum.slot_ed = -1;
 }
 
-Transmitter::~Transmitter()
+Transceiver::~Transceiver()
 {
 
 }
 
-
-Receiver::Receiver()
+OFDMTransceiver::OFDMTransceiver(int transceiver_connection_limit)
 {
-    this->spectrum.slot_st = -1;
-    this->spectrum.slot_ed = -1;
+    this->sub_transceiver.resize(transceiver_connection_limit);
+    this->num_available_sub_transceiver = transceiver_connection_limit;
+    this->in_used = false;
 }
 
-Receiver::~Receiver()
-{
-
-}
-
-OFDMTransmitter::OFDMTransmitter(int transceiver_connection_limit)
-{
-    this->sub_transmitter.resize(transceiver_connection_limit);
-    this->num_available_sub_transmitter = transceiver_connection_limit;
-}
-
-OFDMTransmitter::~OFDMTransmitter()
-{
-
-}
-
-OFDMReceiver::OFDMReceiver(int transceiver_connection_limit)
-{
-    this->sub_receiver.resize(transceiver_connection_limit);
-    this->num_available_sub_receiver = transceiver_connection_limit;
-}
-
-OFDMReceiver::~OFDMReceiver()
+OFDMTransceiver::~OFDMTransceiver()
 {
 
 }
