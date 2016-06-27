@@ -1,6 +1,10 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+class LightPath;
+
+#include "light_path.hpp"
+
 #include <iostream>
 #include <vector>
 #include <list>
