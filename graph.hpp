@@ -4,6 +4,7 @@
 class LightPath;
 
 #include "light_path.hpp"
+#include "spectrum.hpp"
 
 #include <iostream>
 #include <vector>
@@ -46,17 +47,6 @@ struct Graph_info
     int slot_capacity;
     int transceiver_slot_limit;
     int transceiver_connection_limit;
-};
-
-class Spectrum
-{
-public:
-    int slot_st;   // start number of occupied slots
-    int slot_ed;   // end number of occupied slots
-    double weight;
-
-    Spectrum();
-    virtual ~Spectrum();
 };
 
 class Transceiver

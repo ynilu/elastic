@@ -1,3 +1,4 @@
+#include "spectrum.hpp"
 #include "light_path.hpp"
 #include "graph.hpp"
 #include "traffic.hpp"

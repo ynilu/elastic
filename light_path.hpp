@@ -1,11 +1,15 @@
 #ifndef LIGHT_PATH_H
 #define LIGHT_PATH_H
 
+
+#include "spectrum.hpp"
 #include "graph.hpp"
 #include <iostream>
 #include <vector>
 #include <list>
 #include <set>
+
+typedef std::vector<int> Path;
 
 class Aux_link;
 
