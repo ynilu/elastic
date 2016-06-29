@@ -48,7 +48,8 @@ double total_bandwidth_utilization=0;
 double used_bandwidth_utilization=0;
 double total_bandwidth_utilization_back=0;
 double used_bandwidth_utilization_back=0;
-double transceiver_weigth = 0.3;
+double transceiver_weight = 0.3;
+double used_transceiver_weight = 0.2;
 double grooming_weight = 0.3;
 double wavelength_edge_weight = 1000;
 double used_wavelength_edge_weight = 999.9997;
@@ -74,10 +75,13 @@ double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
+void construct_exist_path(Event& event, Aux_graph& a_graph);
+
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
 LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
-LightPath* get_best_new_OFDM_light_path();
-LightPath* get_best_groomed_OFDM_light_path();
+LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
+LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
+LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 
 int main(int argc, char *argv[])
 {
@@ -149,7 +153,7 @@ int main(int argc, char *argv[])
         {
             // cout << "arrival :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
             construct_candidate_path(event, p_graph, a_graph);
-            // construct_exist_path();
+            construct_exist_path(event, a_graph);
         }
         else // if(event.type == Event::departure)
         {
@@ -161,6 +165,72 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void construct_exist_path(Event& event, Aux_graph& a_graph)
+{
+    for(auto &lp : exist_OTDM_light_path_list)
+    {
+        if(lp->available_bitrate < event.bandwidth)
+        {
+            continue;
+        }
+
+        Aux_node* a_node;
+        Aux_node* d_node;
+        Aux_node* t_node;
+        Aux_node* r_node;
+        Aux_link* aux_link;
+
+        for(unsigned int i = 0; i < lp->p_path.size(); i++)
+        {
+            int phy_node_id = lp->p_path[i];
+
+            lp->transmitting_node_list.reserve(lp->p_path.size());
+            lp->receiving_node_list.reserve(lp->p_path.size());
+
+            a_node = a_graph.get_adding_node(phy_node_id);
+            d_node = a_graph.get_dropping_node(phy_node_id);
+
+            t_node = a_graph.create_aux_node(phy_node_id, Aux_node::transmitting_node);
+            lp->transmitting_node_list.push_back(t_node);
+
+            r_node = a_graph.create_aux_node(phy_node_id, Aux_node::receiving_node);
+            lp->receiving_node_list.push_back(r_node);
+
+            aux_link = a_graph.create_aux_link(r_node, t_node, 0.0 - lp->weight, Aux_link::pass_through_link);
+            lp->aux_link_list.push_back(aux_link);
+
+            if(lp->transmitter_index[i] != -1)
+            {
+                aux_link = a_graph.create_aux_link(a_node, t_node, used_transceiver_weight, Aux_link::adding_link);
+            }
+            else
+            {
+                aux_link = a_graph.create_aux_link(a_node, t_node, transceiver_weight, Aux_link::virtual_adding_link);
+            }
+            lp->aux_link_list.push_back(aux_link);
+
+
+            if(lp->receiver_index[i] != -1)
+            {
+                aux_link = a_graph.create_aux_link(r_node, d_node, used_transceiver_weight, Aux_link::dropping_link);
+            }
+            else
+            {
+                aux_link = a_graph.create_aux_link(r_node, d_node, transceiver_weight, Aux_link::virtual_dropping_link);
+            }
+            lp->aux_link_list.push_back(aux_link);
+        }
+
+        for(unsigned int i = 0; i < lp->p_path.size() - 1; i++)
+        {
+            t_node = lp->transmitting_node_list[i];
+            r_node = lp->receiving_node_list[i + 1];
+            aux_link = a_graph.create_aux_link(t_node, r_node, lp->weight, Aux_link::spectrum_link);
+            lp->aux_link_list.push_back(aux_link);
+        }
+    }
+}
+
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
 {
     for(int source = 0; source < num_nodes; source++)
@@ -170,28 +240,57 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
             if(source == destination){
                 continue;
             }
-            // LightPath *new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
-            // LightPath *new_OFDM_lp = get_best_new_OFDM_light_path();
-            // LightPath *groomed_OFDM_lp = get_best_groomed_OFDM_light_path();
+
+            LightPath* new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
+            LightPath* new_OFDM_lp = get_best_new_OFDM_light_path(source, destination, event, p_graph);
+            LightPath* groomed_OFDM_lp = get_best_optical_groomed_OFDM_light_path(source, destination, event, p_graph);
+            LightPath* electrical_lp = get_best_electrical_groomed_OFDM_light_path(source, destination, event, p_graph);
+            build_candidate_link(a_graph, new_OTDM_lp);
+            build_candidate_link(a_graph, new_OFDM_lp);
+            build_candidate_link(a_graph, groomed_OFDM_lp);
+            build_candidate_link(a_graph, electrical_lp);
         }
     }
-
-    // LightPath *new_OTDM_lp = get_best_new_OTDM_light_path();
-    // LightPath *new_OFDM_lp = get_best_new_OFDM_light_path();
-    // LightPath *groomed_OFDM_lp = get_best_groomed_OFDM_light_path();
-
-
-    // delete new_OTDM_lp;
-    // delete new_OFDM_lp;
-    // delete groomed_OFDM_lp;
 }
 
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
 {
+
+    if(lpath == NULL)
+    {
+        return;
+    }
+
     int source = lpath->p_path.front();
     int destination = lpath->p_path.back();
-    Aux_node* v_t_node = a_graph.get_virtual_transmitting_node(source);
-    Aux_node* v_r_node = a_graph.get_virtual_receiving_node(destination);
+
+    Aux_node* v_t_node;
+    Aux_node* v_r_node;
+
+    switch (lpath->type)
+    {
+    case LightPath::new_OTDM:
+        v_t_node = a_graph.get_new_OTDM_virtual_transmitting_node(source);
+        v_r_node = a_graph.get_new_OTDM_virtual_receiving_node(destination);
+        break;
+    case LightPath::new_OFDM:
+        v_t_node = a_graph.get_new_OFDM_virtual_transmitting_node(source);
+        v_r_node = a_graph.get_new_OFDM_virtual_receiving_node(destination);
+        break;
+    case LightPath::groomed_OFDM:
+
+        v_t_node = a_graph.get_groomed_OFDM_virtual_transmitting_node(source);
+        v_r_node = a_graph.get_groomed_OFDM_virtual_receiving_node(destination);
+        break;
+    case LightPath::electrical:
+        v_t_node = a_graph.get_electrical_virtual_transmitting_node(source);
+        v_r_node = a_graph.get_electrical_virtual_receiving_node(destination);
+        break;
+    default:
+        cerr << "undefined LightPath type\n";
+        break;
+    }
+
     Aux_link* c_link = a_graph.create_aux_link(v_t_node, v_r_node, lpath->weight, Aux_link::candidate_link);
 
     c_link->light_path = lpath;              // make aux_link track light path
@@ -566,10 +665,10 @@ LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destinati
     path->p_path = best_existing_lightpath->p_path;
     path->weight = best_path_spectrum.weight;
     path->spectrum = best_path_spectrum;
-    path->transmitter_index.front() = get_available_transceiver(src_node.OFDMtransmitter);
-    path->receiver_index.back() = get_available_transceiver(dst_node.OFDMreceiver);
 
     // TODO Use this when build real light path
+    // path->transmitter_index.front() = get_available_transceiver(src_node.OFDMtransmitter);
+    // path->receiver_index.back() = get_available_transceiver(dst_node.OFDMreceiver);
     // src_node.OFDMtransmitter[path->transmitter_index.front()].spectrum = best_path_spectrum;
     // dst_node.OFDMreceiver[path->receiver_index.back()].spectrum = best_path_spectrum;
     return path;

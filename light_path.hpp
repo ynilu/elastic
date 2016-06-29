@@ -12,6 +12,7 @@
 typedef std::vector<int> Path;
 
 class Aux_link;
+class Aux_node;
 
 class LightPath
 {
@@ -23,14 +24,16 @@ public:
         electrical
     };
     LightPath_type type;
-    std::set<int> requests;          // store request_id
-    std::list<Aux_link*> aux_link_list;
+    std::set<int> requests;                  // store request_id
     int modulation_level;
     int available_bitrate;
     double weight;
     Spectrum spectrum;
-    Path p_path;                     // store phy_node_id
-    std::vector<int> a_nodes;        // store aux_node_id
+    Path p_path;                             // store phy_node_id
+
+    std::vector<Aux_node*> transmitting_node_list;
+    std::vector<Aux_node*> receiving_node_list;
+    std::list<Aux_link*> aux_link_list;
 
     // transmitter_index[i] == -1 -> transmitter not used on Phy_node(p_path[i])
     // transmitter_index[i] == id -> transmitter[id] used on Phy_node(p_path[i])
