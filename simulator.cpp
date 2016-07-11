@@ -74,6 +74,8 @@ typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
+void reset_auxiliary_graph();
+
 Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
 double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
@@ -165,7 +167,7 @@ int main(int argc, char *argv[])
             Aux_node* aux_destination = a_graph.get_dropping_node(*(event.destination.begin()));
             Aux_node2Aux_link result = BellmanFordSP(a_graph, aux_source);
             path_parsing(p_graph, result, aux_source, aux_destination, event);
-            
+            reset_auxiliary_graph();
         }
         else // if(event.type == Event::departure)
         {
@@ -245,7 +247,27 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
 
 void reset_auxiliary_graph()
 {
-    for(auto )
+    for(auto &lp : exist_OTDM_light_path_list)
+    {
+        for(auto &aux_node : lp->transmitting_node_list)
+        {
+            delete aux_node;
+        }
+        lp->transmitting_node_list.clear();
+        for(auto &aux_node : lp->receiving_node_list)
+        {
+            delete aux_node;
+        }
+        lp->receiving_node_list.clear();
+    }
+    for(auto &lp : exist_OFDM_light_path_list)
+    {
+        for(auto &aux_link : lp->aux_link_list)
+        {
+            delete aux_link;
+        }
+        lp->aux_link_list.clear();
+    }
 }
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
