@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
             Aux_node* aux_destination = a_graph.get_dropping_node(*(event.destination.begin()));
             Aux_node2Aux_link result = BellmanFordSP(a_graph, aux_source);
             path_parsing(p_graph, result, aux_source, aux_destination, event);
-
+            
         }
         else // if(event.type == Event::departure)
         {
@@ -241,6 +241,11 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
             lp->aux_link_list.push_back(aux_link);
         }
     }
+}
+
+void reset_auxiliary_graph()
+{
+    for(auto )
 }
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
@@ -356,6 +361,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
                 link.slot[i] = -1;
             }
         }
+        exist_OTDM_light_path_list.push_back(new_path);
         break;
 
     case LightPath:: new_OFDM:
@@ -383,6 +389,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
                 link.slot[i] = -1;
             }
         }
+        exist_OFDM_light_path_list.push_back(new_path);
         break;
 
     case LightPath:: groomed_OFDM:
@@ -413,6 +420,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
                 link.slot[i] = -1;
             }
         }
+        exist_OFDM_light_path_list.push_back(new_path);
         break;
 
     case LightPath:: electrical:
@@ -448,6 +456,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
                 link.slot[i] = -1;
             }
         }
+        exist_OFDM_light_path_list.push_back(new_path);
         break;
 
     default:
