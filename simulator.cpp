@@ -73,6 +73,7 @@ typedef unordered_map<Aux_node*, double> Aux_node2Double;
 typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
+void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
 Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
 double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*> queue);
@@ -163,6 +164,7 @@ int main(int argc, char *argv[])
             Aux_node* aux_source = a_graph.get_adding_node(event.source);
             Aux_node* aux_destination = a_graph.get_dropping_node(*(event.destination.begin()));
             Aux_node2Aux_link result = BellmanFordSP(a_graph, aux_source);
+            path_parsing(p_graph, result, aux_source, aux_destination, event);
 
         }
         else // if(event.type == Event::departure)
@@ -454,7 +456,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
     }
 }
 
-void path_parsing(Phy_graph p_graph, Aux_node2Aux_link result, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
+void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event)
 {
     Aux_link* aux_link = result[aux_destination];
     Aux_node* aux_node = aux_link->from;
@@ -463,9 +465,14 @@ void path_parsing(Phy_graph p_graph, Aux_node2Aux_link result, Aux_node* aux_sou
         switch(aux_link->type)
         {
         case Aux_link::candidate_link:
-            build_light_path(p_graph, aux_link->light_path, aux_source, aux_destination, request_id);
+            build_light_path(p_graph, aux_link->light_path, aux_source, aux_destination, event.request_id);
             break;
         case Aux_link::spectrum_link:
+            if(aux_link->light_path->requests.find(event.request_id) == aux_link->light_path->requests.end())
+            {
+                aux_link->light_path->requests.insert(event.request_id);
+                aux_link->light_path->available_bitrate -= event.bandwidth;
+            }
             break;
         case Aux_link::grooming_link:
             break;
@@ -476,8 +483,34 @@ void path_parsing(Phy_graph p_graph, Aux_node2Aux_link result, Aux_node* aux_sou
         case Aux_link::pass_through_link:
             break;
         case Aux_link::virtual_adding_link:
+            if(aux_link->light_path->type == LightPath::new_OTDM)
+            {
+                unsigned int i;
+                for(i = 0; i < aux_link->light_path->p_path.size(); i++)
+                {
+                    if(aux_node->phy_id == aux_link->light_path->p_path[i])
+                    {
+                        break;
+                    }
+                }
+                aux_link->light_path->transmitter_index[i] = 1;
+                p_graph.get_node(aux_node->phy_id).num_available_transmitter--;
+            }
             break;
         case Aux_link::virtual_dropping_link:
+            if(aux_link->light_path->type == LightPath::new_OTDM)
+            {
+                unsigned int i;
+                for(i = 0; i < aux_link->light_path->p_path.size(); i++)
+                {
+                    if(aux_node->phy_id == aux_link->light_path->p_path[i])
+                    {
+                        break;
+                    }
+                }
+                aux_link->light_path->receiver_index[i] = 1;
+                p_graph.get_node(aux_node->phy_id).num_available_receiver--;
+            }
             break;
         default:
             cerr << "aux_link type error\n";
