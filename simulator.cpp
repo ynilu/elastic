@@ -15,7 +15,7 @@
 using namespace std;
 
 float unicast_percentage = 1.0;
-int num_requests = 10;
+int num_requests = 1000;
 int num_slots = 320;
 int num_nodes;
 int bandwidth_max = 50;
@@ -268,6 +268,7 @@ int main(int argc, char *argv[])
                                 p_graph.get_node(path[i]).num_available_OFDM_receiver++;
                             }
                         }
+                        delete lp;
                         exist_OFDM_light_path_list.remove(lp);
                         break;
                     }
@@ -297,13 +298,14 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
         Aux_node* r_node;
         Aux_link* aux_link;
 
+        lp->transmitting_node_list.reserve(lp->p_path.size());
+        lp->receiving_node_list.reserve(lp->p_path.size());
+
         for(unsigned int i = 0; i < lp->p_path.size(); i++)
         {
             int phy_node_id = lp->p_path[i];
 
-            lp->transmitting_node_list.reserve(lp->p_path.size());
-            lp->receiving_node_list.reserve(lp->p_path.size());
-
+            // TODO first node dont need dropping edge
             a_node = a_graph.get_adding_node(phy_node_id);
             d_node = a_graph.get_dropping_node(phy_node_id);
 
@@ -315,6 +317,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
 
             aux_link = a_graph.create_aux_link(r_node, t_node, 0.0 - lp->weight, Aux_link::pass_through_link);
             lp->aux_link_list.push_back(aux_link);
+            aux_link->light_path = lp;              // make aux_link track light path
 
             if(lp->transmitter_index[i] != -1)
             {
@@ -325,6 +328,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
                 aux_link = a_graph.create_aux_link(a_node, t_node, transceiver_weight, Aux_link::virtual_adding_link);
             }
             lp->aux_link_list.push_back(aux_link);
+            aux_link->light_path = lp;              // make aux_link track light path
 
 
             if(lp->receiver_index[i] != -1)
@@ -336,6 +340,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
                 aux_link = a_graph.create_aux_link(r_node, d_node, transceiver_weight, Aux_link::virtual_dropping_link);
             }
             lp->aux_link_list.push_back(aux_link);
+            aux_link->light_path = lp;              // make aux_link track light path
         }
 
         for(unsigned int i = 0; i < lp->p_path.size() - 1; i++)
@@ -343,7 +348,9 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
             t_node = lp->transmitting_node_list[i];
             r_node = lp->receiving_node_list[i + 1];
             aux_link = a_graph.create_aux_link(t_node, r_node, lp->weight, Aux_link::spectrum_link);
+            // cout << "lp : " << lp << "  link: " << aux_link << "\n";
             lp->aux_link_list.push_back(aux_link);
+            aux_link->light_path = lp;              // make aux_link track light path
         }
     }
 }
@@ -602,6 +609,9 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
             build_light_path(p_graph, aux_link->light_path, aux_source, aux_destination, event.request_id);
             break;
         case Aux_link::spectrum_link:
+            // cout << aux_link << "\n";
+            // cout << aux_link->light_path << "\n";
+            // cout << aux_link->light_path->requests.size() << "\n";
             if(aux_link->light_path->requests.find(event.request_id) == aux_link->light_path->requests.end())
             {
                 request2lightpath[event.request_id].push_back(aux_link->light_path);
