@@ -94,6 +94,48 @@ LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destinati
 
 int main(int argc, char *argv[])
 {
+    if( argc > 4 )
+    {
+        cout << "\nToo many arguments,EX: simulation labmda rquest_number" << "\n";
+        return 1;
+    }
+    if( argc > 1 )
+    {
+        if( atoi( argv[ 1 ] ) > 0 )
+        {
+            traffic_lambda = atoi( argv[ 1 ] );
+        }
+        else
+        {
+            cout << "\nError parameter: 1" << "\n";
+            return 1;
+        }
+    }
+    if( argc > 2 )
+    {
+        if( atoi( argv[ 2 ] ) > 0 )
+        {
+            num_requests = atoi( argv[ 2 ] );
+        }
+        else
+        {
+            cout << "\nError parameter: 2" << "\n";
+            return 1;
+        }
+    }
+    if( argc > 3 )
+    {
+        if( atoi( argv[ 3 ] ) > 0 )
+        {
+            num_OFDM_transceiver= atoi( argv[ 3 ] );
+            num_OTDM_transceiver= atoi( argv[ 3 ] );
+        }
+        else
+        {
+            cout << "\nError parameter: 3" << "\n";
+            return 1;
+        }
+    }
     Graph_info g_info;
     g_info.graph_file = (char*) "USnet.txt";
     g_info.num_slots = num_slots;
@@ -183,7 +225,7 @@ int main(int argc, char *argv[])
         }
         else // if(event.type == Event::departure)
         {
-            // cout << "departure :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
+            cout << "departure :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
             for(auto &lp : request2lightpath[event.request_id])
             {
                 lp->requests.erase(event.request_id);
@@ -305,7 +347,6 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
         {
             int phy_node_id = lp->p_path[i];
 
-            // TODO first node dont need dropping edge
             a_node = a_graph.get_adding_node(phy_node_id);
             d_node = a_graph.get_dropping_node(phy_node_id);
 
