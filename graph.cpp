@@ -212,7 +212,7 @@ void Phy_graph::read_network_file(char* graph_file, int num_slots)
         new_link.destination = node_b;
         new_link.distance = distance;
         new_link.num_remaining_slots = num_slots;
-        new_link.slot.resize(num_slots, 0);
+        new_link.slot.resize(num_slots, -1);
 
         link_list[make_pair(node_a,node_b)] = new_link;
 
