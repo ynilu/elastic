@@ -65,7 +65,6 @@ public:
     bool in_used;
     int num_available_sub_transceiver;
     std::list<LightPath*> light_path;
-
     std::vector<Transceiver> sub_transceiver;
 
     Spectrum spectrum;

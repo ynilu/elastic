@@ -317,6 +317,11 @@ int main(int argc, char *argv[])
                         slot_st = lp->spectrum.slot_st;
                         slot_ed = lp->spectrum.slot_ed;
 
+                        Phy_node& src_node = p_graph.get_node(path.front());
+                        Phy_node& dst_node = p_graph.get_node(path.back());
+                        src_node.OFDMtransmitter[lp->transmitter_index.front()].num_available_sub_transceiver++;
+                        dst_node.OFDMreceiver[lp->receiver_index.back()].num_available_sub_transceiver++;
+
                         for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
                         {
                             int from = path[node_i];
@@ -329,27 +334,22 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        for(unsigned int i = 0; i < lp->transmitter_index.size(); i++)
+                        if(src_node.OFDMtransmitter[lp->transmitter_index.front()].num_available_sub_transceiver >= transceiver_connection_limit)
                         {
-                            if(lp->transmitter_index[i] != -1)
-                            {
-                                // TODO handle sub_transceiver
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].spectrum.slot_st = -1;
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].spectrum.slot_ed = -1;
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].in_used = false;
-                                p_graph.get_node(path[i]).num_available_OFDM_transmitter++;
-                            }
+                            src_node.OFDMtransmitter[lp->transmitter_index.front()].spectrum.slot_st = -1;
+                            src_node.OFDMtransmitter[lp->transmitter_index.front()].spectrum.slot_ed = -1;
+                            src_node.OFDMtransmitter[lp->transmitter_index.front()].in_used = false;
+                            src_node.OFDMtransmitter[lp->transmitter_index.front()].num_available_sub_transceiver = transceiver_connection_limit;
+                            src_node.num_available_OFDM_transmitter++;
                         }
 
-                        for(unsigned int i = 0; i < lp->receiver_index.size(); i++)
+                        if(dst_node.OFDMreceiver[lp->receiver_index.back()].num_available_sub_transceiver >= transceiver_connection_limit)
                         {
-                            if(lp->receiver_index[i] != -1)
-                            {
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].spectrum.slot_st = -1;
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].spectrum.slot_ed = -1;
-                                p_graph.get_node(path[i]).OFDMreceiver[lp->receiver_index[i]].in_used = false;
-                                p_graph.get_node(path[i]).num_available_OFDM_receiver++;
-                            }
+                            dst_node.OFDMreceiver[lp->receiver_index.back()].spectrum.slot_st = -1;
+                            dst_node.OFDMreceiver[lp->receiver_index.back()].spectrum.slot_ed = -1;
+                            dst_node.OFDMreceiver[lp->receiver_index.back()].in_used = false;
+                            dst_node.OFDMreceiver[lp->receiver_index.back()].num_available_sub_transceiver = transceiver_connection_limit;
+                            dst_node.num_available_OFDM_receiver++;
                         }
                         delete lp;
                         exist_OFDM_light_path_list.remove(lp);
@@ -586,8 +586,10 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
         new_path->receiver_index.back() = get_available_OFDM_transceiver(dst_node.OFDMreceiver);
         dst_node.num_available_OFDM_receiver--;
         src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum = candidate_path->spectrum;
+        src_node.OFDMtransmitter[new_path->transmitter_index.front()].num_available_sub_transceiver--;
         src_node.OFDMtransmitter[new_path->transmitter_index.front()].in_used = true;
         dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum = candidate_path->spectrum;
+        dst_node.OFDMreceiver[new_path->receiver_index.back()].num_available_sub_transceiver--;
         dst_node.OFDMreceiver[new_path->receiver_index.back()].in_used = true;
 
         for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
@@ -611,8 +613,10 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
         new_path->receiver_index.resize(path.size(), -1);
         new_path->receiver_index.back() = get_available_OFDM_transceiver(dst_node.OFDMreceiver);
         dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum = candidate_path->spectrum;
+        dst_node.OFDMreceiver[new_path->receiver_index.back()].num_available_sub_transceiver--;
         dst_node.OFDMreceiver[new_path->receiver_index.back()].in_used = true;
         dst_node.num_available_OFDM_receiver--;
+        src_node.OFDMtransmitter[new_path->transmitter_index.front()].num_available_sub_transceiver--;
         if(src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum.slot_st > slot_st)
         {
             src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum.slot_st = slot_st;
@@ -640,6 +644,8 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
     case LightPath:: electrical:
         new_path->transmitter_index = candidate_path->transmitter_index;
         new_path->receiver_index = candidate_path->receiver_index;
+        src_node.OFDMtransmitter[new_path->transmitter_index.front()].num_available_sub_transceiver--;
+        dst_node.OFDMreceiver[new_path->receiver_index.back()].num_available_sub_transceiver--;
         if(src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum.slot_st > slot_st)
         {
             src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum.slot_st = slot_st;
@@ -648,13 +654,13 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
         {
             src_node.OFDMtransmitter[new_path->transmitter_index.front()].spectrum.slot_ed = slot_ed;
         }
-        if(dst_node.OFDMreceiver[new_path->receiver_index.front()].spectrum.slot_st > slot_st)
+        if(dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum.slot_st > slot_st)
         {
-            dst_node.OFDMreceiver[new_path->receiver_index.front()].spectrum.slot_st = slot_st;
+            dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum.slot_st = slot_st;
         }
-        if(dst_node.OFDMreceiver[new_path->receiver_index.front()].spectrum.slot_ed < slot_ed)
+        if(dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum.slot_ed < slot_ed)
         {
-            dst_node.OFDMreceiver[new_path->receiver_index.front()].spectrum.slot_ed = slot_ed;
+            dst_node.OFDMreceiver[new_path->receiver_index.back()].spectrum.slot_ed = slot_ed;
         }
 
         for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
@@ -1066,6 +1072,11 @@ LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destinati
             continue;
         }
 
+        if(transmitter.num_available_sub_transceiver < 1)
+        {
+            continue;
+        }
+
         if(transceiver_slot_limit - num_used_slots < require_slots)
         {
             continue;
@@ -1155,6 +1166,13 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
         {
             int split_node_i;
             unsigned int num_hops = lp->p_path.size();
+
+            OFDMTransceiver& transmitter = src_node.OFDMtransmitter[lp->transmitter_index[0]];
+
+            if(transmitter.num_available_sub_transceiver < 1)
+            {
+                continue;
+            }
 
             if(c_path.path.size() < lp->p_path.size())
             {
