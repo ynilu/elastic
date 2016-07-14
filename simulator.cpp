@@ -30,7 +30,7 @@ double clk_parsing = 0;
 int hop_limit = 7;
 float unicast_percentage = 1.0;
 int num_requests = 1000;
-int num_slots = 320;
+int num_slots = 3;
 int num_nodes;
 int bandwidth_max = 50;
 int bandwidth_min = 1;
@@ -95,6 +95,7 @@ typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id);
 void reset_auxiliary_graph();
 
 Aux_node2Aux_link BellmanFordSP(Aux_node* s);
@@ -105,7 +106,7 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
 void construct_exist_path(Event& event, Aux_graph& a_graph);
 
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
-int get_available_OFDM_transceiver(vector<OFDMTransceiver> transceivers);
+int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers);
 LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
@@ -465,14 +466,14 @@ void reset_auxiliary_graph()
         lp->receiving_node_list.clear();
         lp->aux_link_list.clear();
     }
-    for(auto &lp : exist_OFDM_light_path_list)
+    for(auto &lp : candidate_light_path_list)
     {
         for(auto &aux_link : lp->aux_link_list)
         {
             delete aux_link;
         }
-        lp->aux_link_list.clear();
     }
+    candidate_light_path_list.clear();
 }
 
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
@@ -552,7 +553,7 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
     candidate_light_path_list.push_back(lpath);
 }
 
-void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
 {
     Phy_node& src_node = p_graph.get_node(aux_source->phy_id);
     Phy_node& dst_node = p_graph.get_node(aux_destination->phy_id);
@@ -591,7 +592,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
             link.slot[slot_st] = 0;
             link.slot[slot_ed] = 0;
 
-            for(int i = slot_st + 1; i < slot_ed - 1; i++)
+            for(int i = slot_st + 1; i <= slot_ed - 1; i++)
             {
                 link.slot[i] = 1;
             }
@@ -621,7 +622,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
 
             link.slot[slot_st] = 0;
             link.slot[slot_ed] = 0;
-            for(int i = slot_st + 1; i < slot_ed - 1; i++)
+            for(int i = slot_st + 1; i <= slot_ed - 1; i++)
             {
                 link.slot[i] = 1;
             }
@@ -654,7 +655,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
 
             link.slot[slot_st] = 0;
             link.slot[slot_ed] = 0;
-            for(int i = slot_st + 1; i < slot_ed - 1; i++)
+            for(int i = slot_st + 1; i <= slot_ed - 1; i++)
             {
                 link.slot[i] = 1;
             }
@@ -692,7 +693,7 @@ void build_light_path(Phy_graph p_graph, LightPath* candidate_path, Aux_node* au
 
             link.slot[slot_st] = 0;
             link.slot[slot_ed] = 0;
-            for(int i = slot_st + 1; i < slot_ed - 1; i++)
+            for(int i = slot_st + 1; i <= slot_ed - 1; i++)
             {
                 link.slot[i] = 1;
             }
@@ -802,12 +803,15 @@ int spectrum_available(Phy_link& link, int slot_st, int slot_ed)
     int i = slot_ed;
     if(link.slot[i] != -1)
     {
-        i++;
-        while(link.slot[i] != -1)
+        while(i < num_slots)
         {
             i++;
+            if(link.slot[i] == -1)
+            {
+                return i; // index of first free slot
+            }
         }
-        return i; // index of first free slot
+        return num_slots + 1;
     }
     for(i = slot_ed - 1; i >= slot_st; i--)
     {
@@ -936,7 +940,7 @@ Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
     best_path_spectrum.slot_st = -1;
     best_path_spectrum.slot_ed = -1;
     best_path_spectrum.weight = DBL_MAX;
-    while(slot_st <= num_slots - require_slots)
+    while(slot_st + require_slots - 1 < num_slots)
     {
         slot_ed = slot_st + require_slots - 1;
         int next_start = path_spectrum_available(path, slot_st, slot_ed, p_graph);
@@ -973,7 +977,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     int modulation_level = 0;
     int available_bitrate = 0;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
-    Spectrum path_specturm, best_path_spectrum;
+    Spectrum path_spectrum, best_path_spectrum;
     Path best_p_path;
 
     best_path_spectrum.slot_st = -1;
@@ -983,10 +987,10 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     for(auto &c_path : c_path_list)
     {
         int require_slots = num_guardband_slot * 2 + ceil(1.0 * event.bandwidth / c_path.modulation_level / slot_capacity);
-        path_specturm = find_best_spectrum(c_path.path, require_slots, p_graph);
-        if(best_path_spectrum.weight > path_specturm.weight){
+        path_spectrum = find_best_spectrum(c_path.path, require_slots, p_graph);
+        if(best_path_spectrum.weight > path_spectrum.weight){
             best_p_path = c_path.path;
-            best_path_spectrum = path_specturm;
+            best_path_spectrum = path_spectrum;
             modulation_level = c_path.modulation_level;
             available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
         }
@@ -1004,7 +1008,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
     return path;
 }
 
-int get_available_OFDM_transceiver(vector<OFDMTransceiver> transceivers)
+int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers)
 {
     for(int i = 0; i < (int)transceivers.size(); i++)
     {
@@ -1037,7 +1041,7 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
     int modulation_level = 0;
     int available_bitrate = 0;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
-    Spectrum path_specturm, best_path_spectrum;
+    Spectrum path_spectrum, best_path_spectrum;
     Path best_p_path;
 
     best_path_spectrum.slot_st = -1;
@@ -1047,10 +1051,10 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
     for(auto &c_path : c_path_list)
     {
         int require_slots = num_guardband_slot * 2 + ceil(1.0 * event.bandwidth / c_path.modulation_level / slot_capacity);
-        path_specturm = find_best_spectrum(c_path.path, require_slots, p_graph);
-        if(best_path_spectrum.weight > path_specturm.weight){
+        path_spectrum = find_best_spectrum(c_path.path, require_slots, p_graph);
+        if(best_path_spectrum.weight > path_spectrum.weight){
             best_p_path = c_path.path;
-            best_path_spectrum = path_specturm;
+            best_path_spectrum = path_spectrum;
             modulation_level = c_path.modulation_level;
             available_bitrate = (require_slots - num_guardband_slot * 2) * c_path.modulation_level * slot_capacity - event.bandwidth;
         }
@@ -1073,7 +1077,7 @@ LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destinati
     Phy_node& src_node = p_graph.get_node(source);
     // Phy_node& dst_node = p_graph.get_node(destination);
 
-    Spectrum path_specturm, best_path_spectrum;
+    Spectrum path_spectrum, best_path_spectrum;
     double current_weight;
     LightPath* best_existing_lightpath;
 
@@ -1404,6 +1408,7 @@ void print_result()
 
     ofs << "Bandwidth Blocking Ratio: "<<(double)blocked_bandwidth/total_bandwidth<<endl;
     ofs << "Blocked Requests: "<<blocked_requests<<endl;
+    ofs << "Accepted Requests: "<<accepted_requests<<endl;
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
 
