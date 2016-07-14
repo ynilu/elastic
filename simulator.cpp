@@ -507,8 +507,8 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
     int source = lpath->p_path.front();
     int destination = lpath->p_path.back();
 
-    Aux_node* v_t_node;
-    Aux_node* v_r_node;
+    Aux_node* v_t_node = NULL;
+    Aux_node* v_r_node = NULL;
 
     switch (lpath->type)
     {
@@ -1167,7 +1167,7 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
     Phy_node& src_node = p_graph.get_node(source);
     Phy_node& dst_node = p_graph.get_node(destination);
 
-    LightPath* best_existing_lightpath;
+    LightPath* best_existing_lightpath = NULL;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
     Spectrum best_path_spectrum;
     double current_weight;
