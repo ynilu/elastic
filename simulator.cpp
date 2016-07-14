@@ -914,7 +914,7 @@ double weigh_path_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_gr
     double distance = get_distance(path, slot_st, slot_ed, p_graph);
     double num_cut = get_cut_num(path, slot_st, slot_ed, p_graph);
     double num_align = get_align_num(path, slot_st, slot_ed, p_graph);
-    return reserved_coefficent * (1 / (distance + 1)) + cut_coeffcient * num_cut + align_coeffcient * num_align;
+    return transceiver_slot_limit*2-reserved_coefficent * distance + cut_coeffcient * num_cut + align_coeffcient * num_align;
 }
 
 Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
