@@ -966,8 +966,8 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
         return NULL;
     }
 
-    int modulation_level;
-    int available_bitrate;
+    int modulation_level = 0;
+    int available_bitrate = 0;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
     Spectrum path_specturm, best_path_spectrum;
     Path best_p_path;
@@ -1030,8 +1030,8 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
         return NULL;
     }
 
-    int modulation_level;
-    int available_bitrate;
+    int modulation_level = 0;
+    int available_bitrate = 0;
     list<CandidatePath>& c_path_list = p_graph.get_path_list(source, destination);
     Spectrum path_specturm, best_path_spectrum;
     Path best_p_path;
