@@ -27,6 +27,7 @@ double clk_construction = 0;
 clock_t start_clk_parsing;
 double clk_parsing = 0;
 
+int hop_limit = 7;
 float unicast_percentage = 1.0;
 int num_requests = 1000;
 int num_slots = 320;
@@ -70,7 +71,7 @@ double transceiver_weight = (1-eps) * 0.1;
 double used_transceiver_weight = (1-eps) * 0.01;
 double OFDM_transceiver_weight = (1-eps) * 0.1;
 double used_OFDM_transceiver_weight = (1-eps) * 0.01;
-double OEO_weight = 9;
+double OEO_weight = hop_limit;
 
 double extra_used_transmitter=0;
 double extra_used_transmitter_back=0;
@@ -485,8 +486,11 @@ void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_gra
                 continue;
             }
 
-            LightPath* new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
-            build_candidate_link(a_graph, new_OTDM_lp);
+            if(enable_OTDM)
+            {
+                LightPath* new_OTDM_lp = get_best_new_OTDM_light_path(source, destination, event, p_graph);
+                build_candidate_link(a_graph, new_OTDM_lp);
+            }
             LightPath* new_OFDM_lp = get_best_new_OFDM_light_path(source, destination, event, p_graph);
             build_candidate_link(a_graph, new_OFDM_lp);
             LightPath* groomed_OFDM_lp = get_best_optical_groomed_OFDM_light_path(source, destination, event, p_graph);
@@ -861,7 +865,7 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
         }
     }
     if(zone_clear){
-        return INT_MAX;
+        return transceiver_slot_limit*4*hop_limit;
     }
     return distance;
 }
@@ -920,7 +924,7 @@ double weigh_path_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_gr
     double distance = get_distance(path, slot_st, slot_ed, p_graph);
     double num_cut = get_cut_num(path, slot_st, slot_ed, p_graph);
     double num_align = get_align_num(path, slot_st, slot_ed, p_graph);
-    return transceiver_slot_limit*2-reserved_coefficent * distance + cut_coeffcient * num_cut + align_coeffcient * num_align;
+    return transceiver_slot_limit*4*hop_limit-reserved_coefficent * distance + cut_coeffcient * num_cut + align_coeffcient * num_align;
 }
 
 Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
