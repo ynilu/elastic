@@ -5,14 +5,27 @@
 #include "auxiliary.hpp"
 
 #include <cfloat>
+#include <ctime>
 #include <queue>
 #include <unordered_map>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <cstring>
+#include <sstream>
 #include <cmath>
 #include <list>
 #include <climits>
 
 using namespace std;
+
+clock_t start_clk;
+clock_t start_clk_finding;
+double clk_finding = 0;
+clock_t start_clk_construction;
+double clk_construction = 0;
+clock_t start_clk_parsing;
+double clk_parsing = 0;
 
 float unicast_percentage = 1.0;
 int num_requests = 1000;
@@ -78,7 +91,7 @@ typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
 void reset_auxiliary_graph();
 
-Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s);
+Aux_node2Aux_link BellmanFordSP(Aux_node* s);
 double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue);
 
@@ -91,6 +104,10 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
 LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
+
+char* graph_file = (char*) "NSFnet.txt";
+char* source_file = (char*) "NSFnet_source.txt";
+char* traffic_file = (char*) "NSFnet_traffic.txt";
 
 int main(int argc, char *argv[])
 {
@@ -136,8 +153,24 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
+    if( argc > 4 )
+    {
+        switch( atoi( argv[4] ) )
+        {
+        case 1:
+            graph_file = (char*) "USnet.txt";
+            source_file = (char*) "USnet_source.txt";
+            traffic_file = (char*) "USnet_traffic.txt";
+            break;
+        default:
+            break;
+        }
+    }
+
+    start_clk = clock();
+
     Graph_info g_info;
-    g_info.graph_file = (char*) "USnet.txt";
+    g_info.graph_file = graph_file;
     g_info.num_slots = num_slots;
     g_info.num_OTDM_transceiver = num_OTDM_transceiver;
     g_info.num_OFDM_transceiver = num_OFDM_transceiver;
@@ -151,8 +184,8 @@ int main(int argc, char *argv[])
     num_nodes = p_graph.node_list.size();
 
     Traffic_info t_info;
-    t_info.source_file = (char*) "USnet_source.txt";
-    t_info.traffic_file = (char*) "USnet_traffic.txt";
+    t_info.source_file = source_file;
+    t_info.traffic_file = traffic_file;
     t_info.num_nodes = p_graph.node_list.size();
     t_info.num_requests = num_requests;
     t_info.bandwidth_max = bandwidth_max;
@@ -205,11 +238,16 @@ int main(int argc, char *argv[])
         if(event.type == Event::arrival)
         {
             cout << "arrival :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
+            start_clk_construction = clock();
             construct_candidate_path(event, p_graph, a_graph);
             construct_exist_path(event, a_graph);
+            clk_construction += (double) ( clock() - start_clk_construction ) / CLOCKS_PER_SEC;
+            start_clk_finding = clock();
             Aux_node* aux_source = a_graph.get_adding_node(event.source);
             Aux_node* aux_destination = a_graph.get_dropping_node(*(event.destination.begin()));
-            Aux_node2Aux_link result = BellmanFordSP(a_graph, aux_source);
+            Aux_node2Aux_link result = BellmanFordSP(aux_source);
+            clk_finding += (double) ( clock() - start_clk_finding ) / CLOCKS_PER_SEC;
+            start_clk_parsing = clock();
             if(result[aux_destination] != NULL) // Accepted
             {
                 path_parsing(p_graph, result, aux_source, aux_destination, event);
@@ -220,8 +258,11 @@ int main(int argc, char *argv[])
                 blocked_requests++;
                 blocked_bandwidth += event.bandwidth;
             }
+            clk_parsing += (double) ( clock() - start_clk_parsing ) / CLOCKS_PER_SEC;
             total_bandwidth += event.bandwidth;
+            start_clk_construction = clock();
             reset_auxiliary_graph();
+            clk_construction += (double) ( clock() - start_clk_construction ) / CLOCKS_PER_SEC;
         }
         else // if(event.type == Event::departure)
         {
@@ -1003,7 +1044,7 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
 LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 {
     Phy_node& src_node = p_graph.get_node(source);
-    Phy_node& dst_node = p_graph.get_node(destination);
+    // Phy_node& dst_node = p_graph.get_node(destination);
 
     Spectrum path_specturm, best_path_spectrum;
     double current_weight;
@@ -1234,7 +1275,7 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
     return path;
 }
 
-Aux_node2Aux_link BellmanFordSP(Aux_graph& a_graph, Aux_node* s)
+Aux_node2Aux_link BellmanFordSP(Aux_node* s)
 {
     Aux_node2Double distTo;
     Aux_node2Aux_link edgeTo;
@@ -1292,4 +1333,26 @@ void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_
             }
         }
     }
+}
+
+void print_result()
+{
+    ostringstream filename;
+    char* graph = strtok(graph_file,".");
+
+    filename << "result_" << graph << "_" << traffic_lambda << "_" << num_requests << ".rpt";
+
+    ofstream ofs (filename.str(), ofstream::out);
+
+    ofs << "Bandwidth Blocking Ratio: "<<(double)blocked_bandwidth/total_bandwidth<<endl;
+    ofs << "Blocked Requests: "<<blocked_requests<<endl;
+    ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
+    ofs << "Load:"<< traffic_lambda << endl << endl;
+
+    ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
+    ofs << "Time spending for graph construction: "<<clk_construction<<" seconds" << endl;
+    ofs << "Time spending for path finding: "<<clk_finding<<" seconds" << endl;
+    ofs << "Time spending for path parsing: "<<clk_parsing<<" seconds" << endl<<endl;
+
+    ofs.close();
 }
