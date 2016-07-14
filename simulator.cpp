@@ -104,6 +104,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
 LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
+void print_result();
 
 char* graph_file = (char*) "NSFnet.txt";
 char* source_file = (char*) "NSFnet_source.txt";
@@ -363,6 +364,7 @@ int main(int argc, char *argv[])
             }
         }
     }
+    void print_result();
     return 0;
 }
 
