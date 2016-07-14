@@ -112,7 +112,7 @@ char* traffic_file = (char*) "NSFnet_traffic.txt";
 
 int main(int argc, char *argv[])
 {
-    if( argc > 4 )
+    if( argc > 5 )
     {
         cout << "\nToo many arguments,EX: simulation labmda rquest_number" << "\n";
         return 1;
@@ -1359,9 +1359,8 @@ void print_result()
 {
     cout << "Output result\n";
     ostringstream filename;
-    char* graph = strtok(graph_file,".");
 
-    filename << "result_" << graph << "_" << traffic_lambda << "_" << num_requests << ".rpt";
+    filename << "result_" << traffic_lambda << "_" << num_requests << "_" << graph_file;
 
     ofstream ofs (filename.str(), ofstream::out);
 
