@@ -146,7 +146,7 @@ public:
 
     std::list<CandidatePath>& get_path_list(int source, int destination);
 
-    Phy_graph(Graph_info &info);
+    Phy_graph(Graph_info &g_info);
     virtual ~Phy_graph();
 };
 
