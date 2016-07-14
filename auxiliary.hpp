@@ -7,6 +7,17 @@
 
 class Aux_link;
 
+struct Auxiliary_info
+{
+    int num_slots;
+    int num_nodes;
+    double transceiver_weight;
+    double used_transceiver_weight;
+    double OFDM_transceiver_weight;
+    double used_OFDM_transceiver_weight;
+    double OEO_weight;
+};
+
 class Aux_node
 {
 public:
@@ -83,7 +94,7 @@ public:
     Aux_node* create_aux_node(int phy_id, Aux_node::Aux_node_type type);
     Aux_link* create_aux_link(Aux_node* from, Aux_node* to, double weight, Aux_link::Aux_link_type type);
 
-    Aux_graph(int num_phy_node, int num_slots);
+    Aux_graph(Auxiliary_info& a_info);
     virtual ~Aux_graph();
 };
 

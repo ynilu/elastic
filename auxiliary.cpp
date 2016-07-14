@@ -135,19 +135,19 @@ Aux_link::~Aux_link()
 
 }
 
-Aux_graph::Aux_graph(int num_phy_node, int num_slots)
+Aux_graph::Aux_graph(Auxiliary_info& a_info)
 {
     // reserve space for all possible auxiliary nodes
-    adding_node_list.reserve(num_phy_node);
-    dropping_node_list.reserve(num_phy_node);
-    electrical_virtual_transmitting_node_list.reserve(num_phy_node);
-    electrical_virtual_receiving_node_list.reserve(num_phy_node);
-    groomed_OFDM_virtual_transmitting_node_list.reserve(num_phy_node);
-    groomed_OFDM_virtual_receiving_node_list.reserve(num_phy_node);
-    new_OFDM_virtual_transmitting_node_list.reserve(num_phy_node);
-    new_OFDM_virtual_receiving_node_list.reserve(num_phy_node);
-    new_OTDM_virtual_transmitting_node_list.reserve(num_phy_node);
-    new_OTDM_virtual_receiving_node_list.reserve(num_phy_node);
+    adding_node_list.reserve(a_info.num_nodes);
+    dropping_node_list.reserve(a_info.num_nodes);
+    electrical_virtual_transmitting_node_list.reserve(a_info.num_nodes);
+    electrical_virtual_receiving_node_list.reserve(a_info.num_nodes);
+    groomed_OFDM_virtual_transmitting_node_list.reserve(a_info.num_nodes);
+    groomed_OFDM_virtual_receiving_node_list.reserve(a_info.num_nodes);
+    new_OFDM_virtual_transmitting_node_list.reserve(a_info.num_nodes);
+    new_OFDM_virtual_receiving_node_list.reserve(a_info.num_nodes);
+    new_OTDM_virtual_transmitting_node_list.reserve(a_info.num_nodes);
+    new_OTDM_virtual_receiving_node_list.reserve(a_info.num_nodes);
 
     Aux_node* a_node;   // adding node
     Aux_node* d_node;   // dropping node
@@ -160,7 +160,7 @@ Aux_graph::Aux_graph(int num_phy_node, int num_slots)
     Aux_node* new_OTDM_v_t_node; // new OTDM virtual transmitting node
     Aux_node* new_OTDM_v_r_node; // new OTDM virtual receiving node
 
-    for(int phy_node_i = 0; phy_node_i < num_phy_node; phy_node_i++)
+    for(int phy_node_i = 0; phy_node_i < a_info.num_nodes; phy_node_i++)
     {
         a_node = create_aux_node(phy_node_i, Aux_node::adding_node);
         adding_node_list.push_back(a_node);
@@ -188,19 +188,19 @@ Aux_graph::Aux_graph(int num_phy_node, int num_slots)
         new_OTDM_virtual_receiving_node_list.push_back(new_OTDM_v_r_node);
 
 
-        create_aux_link(d_node, a_node, 1, Aux_link::grooming_link);
+        create_aux_link(d_node, a_node, a_info.OEO_weight, Aux_link::grooming_link);
 
-        create_aux_link(a_node, electrical_v_t_node, 1, Aux_link::adding_link);
-        create_aux_link(electrical_v_r_node, d_node, 1, Aux_link::dropping_link);
+        create_aux_link(a_node, electrical_v_t_node, a_info.used_OFDM_transceiver_weight, Aux_link::adding_link);
+        create_aux_link(electrical_v_r_node, d_node, a_info.used_OFDM_transceiver_weight, Aux_link::dropping_link);
 
-        create_aux_link(a_node, groomed_OFDM_v_t_node, 1, Aux_link::adding_link);
-        create_aux_link(groomed_OFDM_v_r_node, d_node, 1, Aux_link::virtual_dropping_link);
+        create_aux_link(a_node, groomed_OFDM_v_t_node, a_info.used_OFDM_transceiver_weight, Aux_link::adding_link);
+        create_aux_link(groomed_OFDM_v_r_node, d_node, a_info.OFDM_transceiver_weight, Aux_link::virtual_dropping_link);
 
-        create_aux_link(a_node, new_OFDM_v_t_node, 1, Aux_link::virtual_adding_link);
-        create_aux_link(new_OFDM_v_r_node, d_node, 1, Aux_link::virtual_dropping_link);
+        create_aux_link(a_node, new_OFDM_v_t_node, a_info.OFDM_transceiver_weight, Aux_link::virtual_adding_link);
+        create_aux_link(new_OFDM_v_r_node, d_node, a_info.OFDM_transceiver_weight, Aux_link::virtual_dropping_link);
 
-        create_aux_link(a_node, new_OTDM_v_t_node, 1, Aux_link::virtual_adding_link);
-        create_aux_link(new_OTDM_v_r_node, d_node, 1, Aux_link::virtual_dropping_link);
+        create_aux_link(a_node, new_OTDM_v_t_node, a_info.transceiver_weight, Aux_link::virtual_adding_link);
+        create_aux_link(new_OTDM_v_r_node, d_node, a_info.transceiver_weight, Aux_link::virtual_dropping_link);
     }
 
 }

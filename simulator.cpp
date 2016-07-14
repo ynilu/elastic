@@ -63,12 +63,13 @@ double used_bandwidth_utilization=0;
 double total_bandwidth_utilization_back=0;
 double used_bandwidth_utilization_back=0;
 
+// edge weight
 double transceiver_weight = 0.3;
 double used_transceiver_weight = 0.2;
-double grooming_weight = 0.3;
-double wavelength_edge_weight = 1000;
-double used_wavelength_edge_weight = 999.9997;
-double busy_edge_weight = 0;
+double OFDM_transceiver_weight = 0.3;
+double used_OFDM_transceiver_weight = 0.2;
+double OEO_weight = 0.3;
+
 double extra_used_transmitter=0;
 double extra_used_transmitter_back=0;
 double extra_used_receiver=0;
@@ -212,7 +213,15 @@ int main(int argc, char *argv[])
     // cout << a.degree << '\n';
     // cout << b.source << '\n';
 
-    Aux_graph a_graph(num_nodes, num_slots);
+    Auxiliary_info a_info;
+    a_info.num_nodes = num_nodes;
+    a_info.num_slots = num_slots;
+    a_info.transceiver_weight = transceiver_weight;
+    a_info.used_transceiver_weight = used_transceiver_weight;
+    a_info.OFDM_transceiver_weight = OFDM_transceiver_weight;
+    a_info.used_OFDM_transceiver_weight = used_OFDM_transceiver_weight;
+    a_info.OEO_weight = OEO_weight;
+    Aux_graph a_graph(a_info);
 
     // for(int source = 0; source < p_graph.node_list.size(); source++)
     // {
