@@ -364,7 +364,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    void print_result();
+    print_result();
     return 0;
 }
 
@@ -1357,6 +1357,7 @@ void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_
 
 void print_result()
 {
+    cout << "Output result\n";
     ostringstream filename;
     char* graph = strtok(graph_file,".");
 
