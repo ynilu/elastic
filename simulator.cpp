@@ -393,7 +393,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
         lp->transmitting_node_list.reserve(lp->p_path.size());
         lp->receiving_node_list.reserve(lp->p_path.size());
         int n = lp->p_path.size() - 1;
-        double weight = (double)n * (1 - eps);
+        double weight = (double)n * (1 - eps) * lp->weight;
 
         for(unsigned int i = 0; i < lp->p_path.size(); i++)
         {
