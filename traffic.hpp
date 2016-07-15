@@ -95,6 +95,19 @@ public:
     double OC192_ratio;
     double OC768_ratio;
     double OC3072_ratio;
+
+    int num_OC1_request = 0;
+    int num_OC3_request = 0;
+    int num_OC9_request = 0;
+    int num_OC12_request = 0;
+    int num_OC18_request = 0;
+    int num_OC24_request = 0;
+    int num_OC36_request = 0;
+    int num_OC48_request = 0;
+    int num_OC192_request = 0;
+    int num_OC768_request = 0;
+    int num_OC3072_request = 0;
+
     int traffic_lambda;
     int traffic_mu;
     float unicast_percentage;

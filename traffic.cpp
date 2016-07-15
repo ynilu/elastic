@@ -30,17 +30,6 @@ Traffic::Traffic(Traffic_info& t_info)
     OC768_ratio = OC192_ratio + 1.0 * t_info.OC768_share / total_OCx_share;
     OC3072_ratio = OC768_ratio + 1.0 * t_info.OC3072_share / total_OCx_share;
 
-    num_OC1_request = 0;
-    num_OC3_request = 0;
-    num_OC9_request = 0;
-    num_OC12_request = 0;
-    num_OC18_request = 0;
-    num_OC24_request = 0;
-    num_OC36_request = 0;
-    num_OC48_request = 0;
-    num_OC192_request = 0;
-    num_OC768_request = 0;
-    num_OC3072_request = 0;
 
     traffic_lambda = t_info.traffic_lambda;
     traffic_mu = t_info.traffic_mu;
@@ -317,7 +306,7 @@ int Traffic::generate_bandwidth()
         bandwidth = 768;
         num_OC768_request++;
     }
-    else if( temp_b <= OC3072_ratio )
+    else  // if( temp_b <= OC3072_ratio )
     {
         bandwidth = 3072;
         num_OC3072_request++;
