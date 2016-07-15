@@ -1453,6 +1453,8 @@ void print_result()
     ofs << "number of OTDM lightpath use: "<< num_OTDM_lightpath_use << endl;
     ofs << "number of OTDM lightpath use per request: "<< (double)num_OTDM_lightpath_use/accepted_requests << endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
+    ofs << "number of OTDM transceiver per degree: "<< num_OTDM_transceiver << endl;
+    ofs << "number of OFDM transceiver per degree: "<< num_OFDM_transceiver << endl;
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
     ofs << "Time spending for graph construction: "<<clk_construction<<" seconds" << endl;
