@@ -68,6 +68,8 @@ int accepted_requests = 0;
 int blocked_requests = 0;
 int blocked_bandwidth = 0;
 int num_OEO = 0;
+int num_OFDM_lightpath_use = 0;
+int num_OTDM_lightpath_use = 0;
 int total_bandwidth = 0;
 int trail_usage_count = 0;
 int trail_usage_count_back = 0;
@@ -610,6 +612,7 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
             }
         }
         exist_OTDM_light_path_list.push_back(new_path);
+        num_OTDM_lightpath_use++;
         break;
 
     case LightPath:: new_OFDM:
@@ -640,6 +643,7 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
             }
         }
         exist_OFDM_light_path_list.push_back(new_path);
+        num_OFDM_lightpath_use++;
         break;
 
     case LightPath:: groomed_OFDM:
@@ -673,6 +677,7 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
             }
         }
         exist_OFDM_light_path_list.push_back(new_path);
+        num_OFDM_lightpath_use++;
         break;
 
     case LightPath:: electrical:
@@ -711,6 +716,7 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
             }
         }
         exist_OFDM_light_path_list.push_back(new_path);
+        num_OFDM_lightpath_use++;
         break;
 
     default:
@@ -739,6 +745,7 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
                 request2lightpath[event.request_id].push_back(aux_link->light_path);
                 aux_link->light_path->requests.insert(event.request_id);
                 aux_link->light_path->available_bitrate -= event.bandwidth;
+                num_OTDM_lightpath_use++;
             }
             break;
         case Aux_link::grooming_link:
@@ -1425,6 +1432,10 @@ void print_result()
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
     ofs << "Total number of OEO: "<< num_OEO << endl;
     ofs << "number of OEO per request: "<<(double)num_OEO/num_requests << endl;
+    ofs << "number of OFDM lightpath use: "<< num_OFDM_lightpath_use << endl;
+    ofs << "number of OFDM lightpath use per request: "<< (double)num_OFDM_lightpath_use/num_requests << endl;
+    ofs << "number of OTDM lightpath use: "<< num_OTDM_lightpath_use << endl;
+    ofs << "number of OTDM lightpath use per request: "<< (double)num_OTDM_lightpath_use/num_requests << endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
