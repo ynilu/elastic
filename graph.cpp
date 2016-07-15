@@ -66,17 +66,17 @@ void Phy_graph::assign_transceivers(int num_OTDM_transceiver, int num_OFDM_trans
 {
     for(auto &node : node_list)
     {
-        node.transmitter.resize(num_OTDM_transceiver);
-        node.num_available_transmitter = num_OTDM_transceiver;
+        node.transmitter.resize(num_OTDM_transceiver * node.degree);
+        node.num_available_transmitter = num_OTDM_transceiver * node.degree;
 
-        node.receiver.resize(num_OTDM_transceiver);
-        node.num_available_receiver = num_OTDM_transceiver;
+        node.receiver.resize(num_OTDM_transceiver * node.degree);
+        node.num_available_receiver = num_OTDM_transceiver * node.degree;
 
-        node.OFDMtransmitter.resize(transceiver_connection_limit, OFDMTransceiver(transceiver_connection_limit));
-        node.num_available_OFDM_transmitter = num_OFDM_transceiver;
+        node.OFDMtransmitter.resize(num_OFDM_transceiver * node.degree, OFDMTransceiver(transceiver_connection_limit));
+        node.num_available_OFDM_transmitter = num_OFDM_transceiver * node.degree;
 
-        node.OFDMreceiver.resize(transceiver_connection_limit, OFDMTransceiver(transceiver_connection_limit));
-        node.num_available_OFDM_receiver = num_OFDM_transceiver;
+        node.OFDMreceiver.resize(num_OFDM_transceiver * node.degree, OFDMTransceiver(transceiver_connection_limit));
+        node.num_available_OFDM_receiver = num_OFDM_transceiver * node.degree;
     }
 }
 
