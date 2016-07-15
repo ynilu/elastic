@@ -745,7 +745,7 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
         switch(aux_link->type)
         {
         case Aux_link::candidate_link:
-            build_light_path(p_graph, aux_link->light_path, aux_source, aux_destination, event.request_id);
+            build_light_path(p_graph, aux_link->light_path, aux_link->from, aux_link->to, event.request_id);
             break;
         case Aux_link::spectrum_link:
             // cout << aux_link << "\n";
@@ -1189,7 +1189,7 @@ LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destinati
 
     LightPath* path = new LightPath();
 
-    path->type = LightPath::groomed_OFDM;
+    path->type = LightPath::electrical;
     path->modulation_level = best_existing_lightpath->modulation_level;
     path->available_bitrate = available_bitrate;
     path->p_path = best_existing_lightpath->p_path;
