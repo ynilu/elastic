@@ -590,6 +590,7 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
     new_path->weight = candidate_path->weight;
     new_path->spectrum = candidate_path->spectrum;
     new_path->p_path = candidate_path->p_path;
+    new_path->type = candidate_path->type;
 
 
     int slot_st = new_path->spectrum.slot_st;
@@ -1044,11 +1045,11 @@ int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers)
     {
         if(transceivers[i].in_used == false)
         {
-            transceivers[i].in_used = true;
             return i;
         }
     }
     cout << "error can not find available transceiver\n";
+    exit(1);
     return -1;
 }
 
@@ -1236,16 +1237,16 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
 
             if(c_path.path.size() < lp->p_path.size())
             {
-                split_node_i = c_path.path.back();
-                num_hops = c_path.path.size();
+                num_hops = c_path.path.size() - 1;
             }
             else
             {
-                split_node_i = lp->p_path.back();
-                num_hops = lp->p_path.size();
+                num_hops = lp->p_path.size() - 1;
             }
 
-            for(unsigned int node_i = 0; node_i < num_hops; node_i++)
+            split_node_i = num_hops;
+
+            for(unsigned int node_i = 0; node_i <= num_hops; node_i++)
             {
                 if(c_path.path[node_i] != lp->p_path[node_i])
                 {
@@ -1254,7 +1255,7 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
                 }
             }
 
-            if(split_node_i < 2)
+            if(split_node_i < 1)
             {
                 continue;
             }
@@ -1263,6 +1264,10 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
             {
                 continue;
             }
+
+            // cout << "lpath size : " << lp->p_path.size() << '\n';
+            // cout << "cpath size : " << c_path.path.size() << '\n';
+            // cout << "split_node_i : " << split_node_i << '\n';
 
             Path trunk(lp->p_path.begin(), lp->p_path.begin() + split_node_i);
             Path branch(lp->p_path.begin() + split_node_i, lp->p_path.end());
@@ -1353,6 +1358,7 @@ LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination,
     path->weight = best_path_spectrum.weight;
     path->spectrum = best_path_spectrum;
     path->transmitter_index = best_existing_lightpath->transmitter_index;
+    path->receiver_index = best_existing_lightpath->receiver_index;
     return path;
 }
 
