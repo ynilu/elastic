@@ -1093,7 +1093,7 @@ LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& even
         return NULL;
     }
     LightPath* path = new LightPath();
-    path->type = LightPath::new_OTDM;
+    path->type = LightPath::new_OFDM;
     path->p_path = best_p_path;
     path->modulation_level = modulation_level;
     path->available_bitrate = available_bitrate;
