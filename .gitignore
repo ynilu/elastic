@@ -1,6 +1,7 @@
 run*
 *.o
 result*
+.ycm_extra_conf.pyc
 
 # Ignore tags created by etags, ctags, gtags (GNU global) and cscope
 TAGS
