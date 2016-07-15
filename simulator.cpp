@@ -67,6 +67,7 @@ long long b_seed = 453424686;
 int accepted_requests = 0;
 int blocked_requests = 0;
 int blocked_bandwidth = 0;
+int num_OEO = 0;
 int total_bandwidth = 0;
 int trail_usage_count = 0;
 int trail_usage_count_back = 0;
@@ -741,6 +742,7 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
             }
             break;
         case Aux_link::grooming_link:
+            num_OEO++;
             break;
         case Aux_link::adding_link:
             break;
@@ -1421,6 +1423,8 @@ void print_result()
     ofs << "Blocked Requests: "<<blocked_requests<<endl;
     ofs << "Accepted Requests: "<<accepted_requests<<endl;
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
+    ofs << "Total number of OEO: "<< num_OEO << endl;
+    ofs << "number of OEO per request: "<<(double)num_OEO/num_requests << endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
