@@ -1447,11 +1447,11 @@ void print_result()
     ofs << "Accepted Requests: "<<accepted_requests<<endl;
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
     ofs << "Total number of OEO: "<< num_OEO << endl;
-    ofs << "number of OEO per request: "<<(double)num_OEO/num_requests << endl;
+    ofs << "number of OEO per request: "<<(double)num_OEO/accepted_requests << endl;
     ofs << "number of OFDM lightpath use: "<< num_OFDM_lightpath_use << endl;
-    ofs << "number of OFDM lightpath use per request: "<< (double)num_OFDM_lightpath_use/num_requests << endl;
+    ofs << "number of OFDM lightpath use per request: "<< (double)num_OFDM_lightpath_use/accepted_requests << endl;
     ofs << "number of OTDM lightpath use: "<< num_OTDM_lightpath_use << endl;
-    ofs << "number of OTDM lightpath use per request: "<< (double)num_OTDM_lightpath_use/num_requests << endl;
+    ofs << "number of OTDM lightpath use per request: "<< (double)num_OTDM_lightpath_use/accepted_requests << endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
