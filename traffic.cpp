@@ -6,8 +6,42 @@ Traffic::Traffic(Traffic_info& t_info)
 {
     num_nodes = t_info.num_nodes;
     num_requests = t_info.num_requests;
-    bandwidth_max = t_info.bandwidth_max;
-    bandwidth_min = t_info.bandwidth_min;
+    total_OCx_share =
+        t_info.OC1_share +
+        t_info.OC3_share +
+        t_info.OC9_share +
+        t_info.OC12_share +
+        t_info.OC18_share +
+        t_info.OC24_share +
+        t_info.OC36_share +
+        t_info.OC48_share +
+        t_info.OC192_share +
+        t_info.OC768_share +
+        t_info.OC3072_share;
+    OC1_ratio = 1.0 * t_info.OC1_share / total_OCx_share;
+    OC3_ratio = OC1_ratio + 1.0 * t_info.OC3_share / total_OCx_share;
+    OC9_ratio = OC3_ratio + 1.0 * t_info.OC9_share / total_OCx_share;
+    OC12_ratio = OC9_ratio + 1.0 * t_info.OC12_share / total_OCx_share;
+    OC18_ratio = OC12_ratio + 1.0 * t_info.OC18_share / total_OCx_share;
+    OC24_ratio = OC18_ratio + 1.0 * t_info.OC24_share / total_OCx_share;
+    OC36_ratio = OC24_ratio + 1.0 * t_info.OC36_share / total_OCx_share;
+    OC48_ratio = OC36_ratio + 1.0 * t_info.OC48_share / total_OCx_share;
+    OC192_ratio = OC48_ratio + 1.0 * t_info.OC192_share / total_OCx_share;
+    OC768_ratio = OC192_ratio + 1.0 * t_info.OC768_share / total_OCx_share;
+    OC3072_ratio = OC768_ratio + 1.0 * t_info.OC3072_share / total_OCx_share;
+
+    num_OC1_request = 0;
+    num_OC3_request = 0;
+    num_OC9_request = 0;
+    num_OC12_request = 0;
+    num_OC18_request = 0;
+    num_OC24_request = 0;
+    num_OC36_request = 0;
+    num_OC48_request = 0;
+    num_OC192_request = 0;
+    num_OC768_request = 0;
+    num_OC3072_request = 0;
+
     traffic_lambda = t_info.traffic_lambda;
     traffic_mu = t_info.traffic_mu;
     unicast_percentage = t_info.unicast_percentage;
@@ -231,9 +265,64 @@ int Traffic::generate_destination(int source)
 int Traffic::generate_bandwidth()
 {
     int bandwidth;
-    int num_points = bandwidth_max - bandwidth_min + 1;
-    bandwidth = (int) (num_points * random_number( nextrand(b_seed) ));
-    bandwidth += bandwidth_min;
+    float temp_b;
+    temp_b = random_number( nextrand(b_seed) );
+    if( temp_b <= OC1_ratio )
+    {
+        bandwidth = 1;
+        num_OC1_request++;
+    }
+    else if( temp_b <= OC3_ratio )
+    {
+        bandwidth = 3;
+        num_OC3_request++;
+    }
+    else if( temp_b <= OC9_ratio )
+    {
+        bandwidth = 9;
+        num_OC9_request++;
+    }
+    else if( temp_b <= OC12_ratio )
+    {
+        bandwidth = 12;
+        num_OC12_request++;
+    }
+    else if( temp_b <= OC18_ratio )
+    {
+        bandwidth = 18;
+        num_OC18_request++;
+    }
+    else if( temp_b <= OC24_ratio )
+    {
+        bandwidth = 24;
+        num_OC24_request++;
+    }
+    else if( temp_b <= OC36_ratio )
+    {
+        bandwidth = 36;
+        num_OC36_request++;
+    }
+    else if( temp_b <= OC48_ratio )
+    {
+        bandwidth = 48;
+        num_OC48_request++;
+    }
+    else if( temp_b <= OC192_ratio )
+    {
+        bandwidth = 192;
+        num_OC192_request++;
+    }
+    else if( temp_b <= OC768_ratio )
+    {
+        bandwidth = 768;
+        num_OC768_request++;
+    }
+    else if( temp_b <= OC3072_ratio )
+    {
+        bandwidth = 3072;
+        num_OC3072_request++;
+    }
+
     return bandwidth;
 }
 

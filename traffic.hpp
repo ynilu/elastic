@@ -14,8 +14,6 @@ struct Traffic_info
     char* traffic_file;
     int num_nodes;
     int num_requests;
-    int bandwidth_max;
-    int bandwidth_min;
     int traffic_lambda;
     int traffic_mu;
     float unicast_percentage;
@@ -25,6 +23,17 @@ struct Traffic_info
     long long d_seed;
     long long numD_seed;
     long long b_seed;
+    int OC1_share;
+    int OC3_share;
+    int OC9_share;
+    int OC12_share;
+    int OC18_share;
+    int OC24_share;
+    int OC36_share;
+    int OC48_share;
+    int OC192_share;
+    int OC768_share;
+    int OC3072_share;
 };
 
 class Request
@@ -74,8 +83,18 @@ public:
 
     int num_nodes;
     int num_requests;
-    int bandwidth_max;
-    int bandwidth_min;
+    int total_OCx_share;
+    double OC1_ratio;
+    double OC3_ratio;
+    double OC9_ratio;
+    double OC12_ratio;
+    double OC18_ratio;
+    double OC24_ratio;
+    double OC36_ratio;
+    double OC48_ratio;
+    double OC192_ratio;
+    double OC768_ratio;
+    double OC3072_ratio;
     int traffic_lambda;
     int traffic_mu;
     float unicast_percentage;

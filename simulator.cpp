@@ -30,19 +30,30 @@ double clk_parsing = 0;
 int hop_limit = 7;
 float unicast_percentage = 1.0;
 int num_requests = 1000;
-int num_slots = 3;
+int num_slots = 320;
 int num_nodes;
-int bandwidth_max = 50;
-int bandwidth_min = 1;
 int traffic_lambda = 1000;
 int traffic_mu = 1;
 int num_OTDM_transceiver = 400;
 int num_OFDM_transceiver = 400;
-double slot_capacity = 12.5;
+int slot_capacity = 250;
 int transceiver_slot_limit = 20;
 int transceiver_connection_limit = 20;
 int num_guardband_slot = 1;
 int enable_OTDM = 1;
+
+// request bandwidth share
+int OC1_share = 7;
+int OC3_share = 8;
+int OC9_share = 9;
+int OC12_share = 8;
+int OC18_share = 7;
+int OC24_share = 6;
+int OC36_share = 5;
+int OC48_share = 4;
+int OC192_share = 3;
+int OC768_share = 2;
+int OC3072_share = 1;
 
 //random_variables
 long long aTime_seed = 1491701989;
