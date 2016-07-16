@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
                             int to = path[node_i + 1];
                             Phy_link& link = p_graph.get_link(from, to);
 
-                            for(int i = slot_st; i < slot_ed; i++)
+                            for(int i = slot_st; i <= slot_ed; i++)
                             {
                                 link.slot[i] = -1;
                             }
@@ -385,7 +385,7 @@ int main(int argc, char *argv[])
                             int to = path[node_i + 1];
                             Phy_link& link = p_graph.get_link(from, to);
 
-                            for(int i = slot_st; i < slot_ed; i++)
+                            for(int i = slot_st; i <= slot_ed; i++)
                             {
                                 link.slot[i] = -1;
                             }
@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    lp->available_bitrate -= event.bandwidth;
+                    lp->available_bitrate += event.bandwidth;
                 }
             }
         }
