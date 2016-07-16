@@ -34,6 +34,7 @@ int num_slots = 320;
 int num_nodes;
 int traffic_lambda = 1000;
 int traffic_mu = 1;
+int num_transceiver = 800;
 int num_OTDM_transceiver = 400;
 int num_OFDM_transceiver = 400;
 int slot_capacity = 250;
@@ -134,7 +135,7 @@ char* traffic_file = (char*) "NSFnet_traffic.txt";
 
 int main(int argc, char *argv[])
 {
-    if( argc > 5 )
+    if( argc > 6 )
     {
         cout << "\nToo many arguments,EX: simulation labmda rquest_number" << "\n";
         return 1;
@@ -172,7 +173,19 @@ int main(int argc, char *argv[])
     }
     if( argc > 4 )
     {
-        switch( atoi( argv[4] ) )
+        if( atoi( argv[ 4 ] ) > 0 )
+        {
+            num_transceiver = atoi( argv[ 4 ] );
+        }
+        else
+        {
+            cout << "\nError parameter: 4" << "\n";
+            return 1;
+        }
+    }
+    if( argc > 5 )
+    {
+        switch( atoi( argv[5] ) )
         {
         case 1:
             graph_file = (char*) "USnet.txt";
@@ -182,6 +195,16 @@ int main(int argc, char *argv[])
         default:
             break;
         }
+    }
+
+    if(enable_OTDM)
+    {
+        num_OFDM_transceiver = num_transceiver / 2;
+        num_OTDM_transceiver = num_transceiver / 2;
+    }
+    else
+    {
+        num_OFDM_transceiver = num_transceiver;
     }
 
     start_clk = clock();
