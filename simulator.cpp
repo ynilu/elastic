@@ -525,6 +525,7 @@ void reset_auxiliary_graph()
         {
             delete aux_link;
         }
+        delete lp;
     }
     candidate_light_path_list.clear();
 }
