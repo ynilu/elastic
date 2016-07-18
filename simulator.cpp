@@ -45,16 +45,16 @@ int enable_OTDM = 1;
 int OTDM_threshold = 400;
 
 // request bandwidth share
-int OC1_share = 7;
-int OC3_share = 8;
-int OC9_share = 9;
-int OC12_share = 8;
-int OC18_share = 7;
-int OC24_share = 6;
-int OC36_share = 5;
-int OC48_share = 4;
-int OC192_share = 3;
-int OC768_share = 2;
+int OC1_share = 0;
+int OC3_share = 0;
+int OC9_share = 0;
+int OC12_share = 0;
+int OC18_share = 1;
+int OC24_share = 1;
+int OC36_share = 1;
+int OC48_share = 1;
+int OC192_share = 1;
+int OC768_share = 1;
 int OC3072_share = 1;
 
 //random_variables
