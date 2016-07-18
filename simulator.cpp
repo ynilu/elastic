@@ -205,6 +205,7 @@ int main(int argc, char *argv[])
     else
     {
         num_OFDM_transceiver = num_transceiver;
+        num_OTDM_transceiver = 0;
     }
 
     start_clk = clock();
