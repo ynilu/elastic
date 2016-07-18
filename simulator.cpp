@@ -127,7 +127,7 @@ LightPath* get_best_new_OTDM_light_path(int source, int destination, Event& even
 LightPath* get_best_new_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_optical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_electrical_groomed_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
-void print_result();
+void print_result(Traffic traffic);
 
 char* graph_file = (char*) "NSFnet.txt";
 char* source_file = (char*) "NSFnet_source.txt";
@@ -420,7 +420,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    print_result();
+    print_result(traffic);
     return 0;
 }
 
@@ -1445,7 +1445,7 @@ void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_
     }
 }
 
-void print_result()
+void print_result(Traffic traffic)
 {
     cout << "Output result\n";
     ostringstream filename;
@@ -1478,6 +1478,18 @@ void print_result()
     ofs << "Load:"<< traffic_lambda << endl << endl;
     ofs << "number of OTDM transceiver per degree: "<< num_OTDM_transceiver << endl;
     ofs << "number of OFDM transceiver per degree: "<< num_OFDM_transceiver << endl;
+    ofs << "number of OC1 requests: " << traffic.num_OC1_request << endl;
+    ofs << "number of OC3 requests: " << traffic.num_OC3_request << endl;
+    ofs << "number of OC9 requests: " << traffic.num_OC9_request << endl;
+    ofs << "number of OC12 requests: " << traffic.num_OC12_request << endl;
+    ofs << "number of OC18 requests: " << traffic.num_OC18_request << endl;
+    ofs << "number of OC24 requests: " << traffic.num_OC24_request << endl;
+    ofs << "number of OC36 requests: " << traffic.num_OC36_request << endl;
+    ofs << "number of OC48 requests: " << traffic.num_OC48_request << endl;
+    ofs << "number of OC192 requests: " << traffic.num_OC192_request << endl;
+    ofs << "number of OC768 requests: " << traffic.num_OC768_request << endl;
+    ofs << "number of OC3072 requests: " << traffic.num_OC3072_request << endl;
+
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
     ofs << "Time spending for graph construction: "<<clk_construction<<" seconds" << endl;
