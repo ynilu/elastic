@@ -176,7 +176,6 @@ int main(int argc, char *argv[])
         if( atoi( argv[ 4 ] ) > 0 )
         {
             num_transceiver = atoi( argv[ 4 ] );
-            OEO_weight = hop_limit;
         }
         else
         {
@@ -196,6 +195,11 @@ int main(int argc, char *argv[])
         default:
             break;
         }
+    }
+
+    if(num_transceiver < 800)
+    {
+        OEO_weight = hop_limit;
     }
 
     if(enable_OTDM)
