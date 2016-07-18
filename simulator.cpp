@@ -911,7 +911,7 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
         int to = path[node_i + 1];
         Phy_link& link = p_graph.get_link(from, to);
         int bound;
-        bound = (slot_st - search_scope + 1 >= 0)? search_scope : 0;
+        bound = (slot_st - search_scope + 1 >= 0)? search_scope : slot_st + 1;
         for(int i = 1; i < bound; i++)
         {
             if(link.slot[slot_st - i] == 0)
@@ -921,7 +921,7 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
                 break;
             }
         }
-        bound = (slot_ed + search_scope - 1 < num_slots)? search_scope : num_slots - 1;
+        bound = (slot_ed + search_scope - 1 < num_slots)? search_scope : num_slots - slot_ed;
         for(int i = 1; i < bound; i++)
         {
             if(link.slot[slot_ed + i] == 0)
