@@ -1,5 +1,7 @@
 run*
 *.o
+*.rpt
+*.err
 result*
 .ycm_extra_conf.pyc
 
