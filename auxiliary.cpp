@@ -38,6 +38,7 @@ Aux_node::~Aux_node()
 
 Aux_link::Aux_link(Aux_node* from, Aux_node* to, double weight, Aux_link_type type)
 {
+    this -> light_path = NULL;
     this -> from = from;
     this -> to = to;
     this -> weight = weight;
