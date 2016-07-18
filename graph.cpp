@@ -228,7 +228,11 @@ void Phy_graph::read_network_file(char* graph_file, int num_slots)
 
 Phy_node::Phy_node()
 {
-
+    degree = 0;
+    num_available_transmitter = 0;
+    num_available_OFDM_transmitter = 0;
+    num_available_receiver = 0;
+    num_available_OFDM_receiver = 0;
 }
 
 Phy_node::~Phy_node()
@@ -238,10 +242,17 @@ Phy_node::~Phy_node()
 
 Phy_link::Phy_link()
 {
+    source = 0;
+    destination = 0;
+    distance = 0;
+    num_remaining_slots = 0;
 }
 
 Phy_link::Phy_link(int num_init_slots)
 {
+    source = 0;
+    destination = 0;
+    distance = 0;
     num_remaining_slots = num_init_slots;
 }
 

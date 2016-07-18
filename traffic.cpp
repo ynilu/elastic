@@ -345,7 +345,12 @@ long long Traffic::nextrand( long long& seed )
 
 Event::Event()
 {
-
+    request_id = -1;
+    source = -1;
+    num_dest = -1;
+    bandwidth = -1;
+    arrival_time = -1;
+    holding_time = -1;
 }
 
 Event::~Event()
