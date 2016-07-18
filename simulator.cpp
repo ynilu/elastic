@@ -87,7 +87,7 @@ double transceiver_weight = (1-eps) * 0.1;
 double used_transceiver_weight = (1-eps) * 0.01;
 double OFDM_transceiver_weight = (1-eps) * 0.1;
 double used_OFDM_transceiver_weight = (1-eps) * 0.01;
-double OEO_weight = hop_limit;
+double OEO_weight = (1-eps) * 0.1;
 
 double extra_used_transmitter=0;
 double extra_used_transmitter_back=0;
@@ -176,6 +176,7 @@ int main(int argc, char *argv[])
         if( atoi( argv[ 4 ] ) > 0 )
         {
             num_transceiver = atoi( argv[ 4 ] );
+            OEO_weight = hop_limit;
         }
         else
         {
