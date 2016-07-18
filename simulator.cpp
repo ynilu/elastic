@@ -1467,7 +1467,7 @@ void print_result(Traffic traffic)
         filename << "SLICE_";
     }
 
-    filename << traffic_lambda << "_" << num_requests << "_" << graph_file;
+    filename << traffic_lambda << "_" << num_requests << "_" << num_transceiver << "_" << graph_file;
 
     ofstream ofs (filename.str(), ofstream::out);
 
