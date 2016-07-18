@@ -910,7 +910,9 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
         int from = path[node_i];
         int to = path[node_i + 1];
         Phy_link& link = p_graph.get_link(from, to);
-        for(int i = 1; i < search_scope; i++)
+        int bound;
+        bound = (slot_st - search_scope + 1 >= 0)? search_scope : 0;
+        for(int i = 1; i < bound; i++)
         {
             if(link.slot[slot_st - i] == 0)
             {
@@ -919,7 +921,8 @@ int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
                 break;
             }
         }
-        for(int i = 1; i < search_scope; i++)
+        bound = (slot_ed + search_scope - 1 < num_slots)? search_scope : num_slots - 1;
+        for(int i = 1; i < bound; i++)
         {
             if(link.slot[slot_ed + i] == 0)
             {
@@ -943,13 +946,19 @@ int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
         int from = path[node_i];
         int to = path[node_i + 1];
         Phy_link& link = p_graph.get_link(from, to);
-        if(link.slot[slot_st - 1] == -1)
+        if(slot_st > 0)
         {
-            num_cut++;
+            if(link.slot[slot_st - 1] == -1)
+            {
+                num_cut++;
+            }
         }
-        if(link.slot[slot_ed + 1] == -1)
+        if(slot_ed < num_cut - 1)
         {
-            num_cut++;
+            if(link.slot[slot_ed + 1] == -1)
+            {
+                num_cut++;
+            }
         }
     }
     return num_cut;
