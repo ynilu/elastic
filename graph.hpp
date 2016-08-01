@@ -18,7 +18,7 @@ class LightPath;
 #include <map>
 
 const double LAUNCH_OSNR = 24.5;
-const double LAUNCH_POWER_DENSITY = 30;
+const double LAUNCH_POWER_DENSITY = 30; // 25
 const double ATTENUATION_PARA = 0.2;
 const double NOISE_PENALTY_FACTOR = 1;
 const double AMPLIFIER_NOISE_FIGURE = 6;
