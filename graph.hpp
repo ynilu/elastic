@@ -17,7 +17,7 @@ class LightPath;
 #include <cmath>
 #include <map>
 
-const double LAUNCH_OSNR = 24.5; // not decided yet
+const double LAUNCH_OSNR = 24.5;
 const double LAUNCH_POWER_DENSITY = 30;
 const double ATTENUATION_PARA = 0.2;
 const double NOISE_PENALTY_FACTOR = 1;
@@ -30,7 +30,7 @@ const double LIGHT_FREQUENCY = 196.1e3;
 // const double LIGHT_FREQUENCY = 192.1e3;
 const double PLANCK = 6.625e-34;
 const double PI = 3.1416;
-const double QPSK_OSNR = 17; // not decided yet
+const double QPSK_OSNR = 17;
 const double OSNR[5] = {-1, -1, 0, 2, 4};
 // const double OSNR[5] = {-1, -1, 8, 13, 16};
 const int SPAN_LEN = 82;
