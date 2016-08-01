@@ -2,6 +2,7 @@
 
 # Usage : THIS.sh TRAFFIC_LOAD NUMBER_OF_REQUEST NUMBER_OF_TRANSCEIVER US_NET_OR_NSFNET(1 or 0)
 
+THISHOST=$(hostname -s)
 TRAFFIC_LOAD=$1
 NUMBER_OF_REQUEST=$2
 NUMBER_OF_TRANSCEIVER=$3
@@ -12,5 +13,11 @@ echo "NUMBER_OF_REQUEST     = $NUMBER_OF_REQUEST"
 echo "NUMBER_OF_TRANSCEIVER = $NUMBER_OF_TRANSCEIVER"
 echo "US_NET_OR_NSFNET      = $US_NET_OR_NSFNET"
 
-nohup ./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 1 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET < /dev/null > OTDM.rpt 2> errorOTDM.err &
-nohup ./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 0 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET < /dev/null > SLICE.rpt 2> errorSLICE.err &
+(
+
+./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 0 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET < /dev/null > SLICE.rpt 2> errorSLICE.err &
+./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 1 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET < /dev/null > OTDM.rpt 2> errorOTDM.err &
+wait;
+echo "Process done in ${THISHOST}" | mail -s "Process done in ${THISHOST}" michael142536@gmail.com
+
+) &
