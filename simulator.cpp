@@ -42,7 +42,7 @@ int transceiver_slot_limit = 10;
 int transceiver_connection_limit = 10;
 int num_guardband_slot = 1;
 int enable_OTDM = 1;
-int OTDM_threshold = 400;
+int OTDM_threshold = 18;
 
 // request bandwidth share
 int OC1_share = 0;
@@ -574,7 +574,7 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
     case LightPath::new_OTDM:
         v_t_node = a_graph.get_new_OTDM_virtual_transmitting_node(source);
         v_r_node = a_graph.get_new_OTDM_virtual_receiving_node(destination);
-        if(lpath->available_bitrate > OTDM_threshold)
+        if(lpath->available_bitrate >= OTDM_threshold)
         {
             lpath->weight = lpath->weight * 0.1;
         }
