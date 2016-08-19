@@ -18,19 +18,19 @@ all: simulator.o graph.o traffic.o auxiliary.o light_path.o spectrum.o
 simulator.o: simulator.cpp
 	$(CXX) $(CFLAGS) -c simulator.cpp
 
-graph.o: graph.cpp
+graph.o: graph.cpp graph.hpp
 	$(CXX) $(CFLAGS) -c graph.cpp
 
-traffic.o: traffic.cpp
+traffic.o: traffic.cpp traffic.hpp
 	$(CXX) $(CFLAGS) -c traffic.cpp
 
-auxiliary.o: auxiliary.cpp
+auxiliary.o: auxiliary.cpp auxiliary.hpp
 	$(CXX) $(CFLAGS) -c auxiliary.cpp
 
-light_path.o: light_path.cpp
+light_path.o: light_path.cpp light_path.hpp
 	$(CXX) $(CFLAGS) -c light_path.cpp
 
-spectrum.o: spectrum.cpp
+spectrum.o: spectrum.cpp spectrum.hpp
 	$(CXX) $(CFLAGS) -c spectrum.cpp
 
 clean:
