@@ -18,10 +18,10 @@ class LightPath
 {
 public:
     enum LightPath_type{
-        new_OTDM,
-        new_OFDM,
-        groomed_OFDM,
-        electrical
+        OTDM,
+        OFDM,
+        OFDM_WB,
+        OFDM_WOB
     };
     LightPath_type type;
     std::set<int> requests;                  // store request_id
