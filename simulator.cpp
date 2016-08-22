@@ -110,23 +110,31 @@ typedef unordered_map<Aux_node*, double> Aux_node2Double;
 typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
-void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
-void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id);
-void reset_auxiliary_graph();
-
-Aux_node2Aux_link BellmanFordSP(Aux_node* s);
-double get_dist(Aux_node2Double& distTo, Aux_node* node);
-void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue);
-
-void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void construct_exist_path(Event& event, Aux_graph& a_graph);
-
+void reset_auxiliary_graph();
+void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id);
+void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
+
+int num_spectrum_available(Phy_link& link, int slot_st, int slot_ed);
+int spectrum_available(Phy_link& link, int slot_st, int slot_ed);
+int path_spectrum_available(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph);
+int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph);
+int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph);
+int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph);
+double weigh_path_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph);
+Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph);
+
 int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers);
 LightPath* get_best_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
 LightPath* get_best_OFDM_WOB_light_path(int source, int destination, Event& event, Phy_graph& p_graph);
+
+Aux_node2Aux_link BellmanFordSP(Aux_node* s);
+double get_dist(Aux_node2Double& distTo, Aux_node* node);
+void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue);
 void print_result(Traffic traffic);
 
 char* graph_file = (char*) "NSFnet.txt";
