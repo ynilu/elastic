@@ -33,9 +33,6 @@ const double QPSK_OSNR = 17.5;
 const double OSNR[5] = {-1, -1, 0, 2, 4};
 const int SPAN_LEN = 82;
 
-double d_osnr(int dis, int span_num, int span_len);
-int modlev(std::vector<int>dis_vec);
-
 struct Graph_info
 {
     char* graph_file;
