@@ -217,16 +217,6 @@ const int SPAN_LEN = 82;
 計算light path reach 相關係數
 
 ```c++
-double d_osnr(int dis, int span_num, int span_len);
-```
-用來計算經過一個 physical node 所增加的 OSNR
-
-```c++
-int modlev(std::vector<int>dis_vec);
-```
-計算給定路徑所能使用最高 level 的 modulation format 如果這條路徑過長無法使用任何一種 modulation format 建立 light path 回傳 -1
-
-```c++
 typedef std::vector<int> Path;
 ```
 以 vector<int> 來表示一條 physical path, 記錄 path 經過的 physical node 的 id
@@ -239,7 +229,7 @@ typedef std::pair<int, int> Node_pair;
 ```c++
 typedef std::vector<int> Parents;
 ```
-在尋找 shortest path 時用來記錄每個 physical node 在 shortest path tree 上的 parent
+在尋找 shortest path 時用來記錄一個 physical node 在 shortest path 上的所有 parents (可能有多個)
 
 ```c++
 typedef std::map< Node_pair, std::list<CandidatePath> > Candidate_path_list;
@@ -316,19 +306,121 @@ Physical link 的 class
   - `Phy_link()`: constructor of Phy_link
   - `~Phy_link()`: destructor of Phy_link
 
+### CandidatePath
+
+candidate light path 的 class
+
+- data
+  - `path`: 這個 candidate path 的 physical node path
+  - `modulation_level`: 這個 candidate path 最所可以使用最高的 modulation level
+- function
+  - `Phy_graph()`: constructor of Phy_graph
+  - `~Phy_graph()`: destructor of Phy_graph
   
+### Aux_graph
+
+auxiliary graph 的 class
+
+- data
+  - `node_list`: 所有的 physical node
+  - `link_list`: 所有的 physical link
+  - `path_list`: 所有的 candidate path
+- function
+  - `read_network_file()`: 從指定的檔案中讀取 network 的架構, 並存到對應的資料結構中
+  - `assign_transceivers()`: 初始化所有 physical node 的 transceiver 以及可用的 transceiver 數量
+  - `find_candidate_path()`: 對所有的 node pair 執行 `BFS_find_path()` 來找 shortest path
+  - `BFS_find_path()`: 對 physical graph 中的一組 node pair 跑 BFS 用來尋找所有的 shortest path
+  - `DFS_back_trace()`: 對 `BFS_find_path()` 的結果, 做 DFS 來列出所有的 shortest path
+  - `get_reach()`: 計算給定路徑所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
+  - `d_osnr()`: 用來計算 signal 經過一個 physical node 所減少的 OSNR
+  - `modlev()`: 計算給定路徑距離所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
+  - `get_path_list()`: 取得一個 reference, 指向給定 node pair 的所有 candidate path
+  - `CandidatePath()`: constructor of CandidatePath
+  - `~CandidatePath()`: destructor of CandidatePath
+
+## graph.cpp
+
+定義所有 graph.hpp 中宣告的 functions
   
-class CandidatePath
-{
-public:
-    Path path;
-    int modulation_level;    // 2 -> QPSK; 3 -> 8QAM; 4 -> 16QAM
-    CandidatePath();
-    virtual ~CandidatePath();
-};
-  
-  
-  
-  
-  
-  
+```c++
+double Phy_graph::d_osnr(int span_num, int span_len)
+```
+用來計算 signal 經過一個 physical node 所減少的 OSNR
+
+```c++
+int Phy_graph::modlev(vector<int>dis_vec)
+```
+計算給定路徑距離所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
+
+```c++
+int Phy_graph::get_reach(vector<int> path)
+```
+取出 `path` 的 distance 資訊, 呼叫 `modlev()` 進行 reach 計算
+
+```c++
+Phy_graph::Phy_graph(Graph_info &g_info)
+```
+1. call `read_network_file()`
+2. call `assign_transceivers()`
+3. call `find_candidate_path()`
+
+```c++
+void Phy_graph::assign_transceivers(int num_OTDM_transceiver, int num_OFDM_transceiver, int transceiver_connection_limit)
+```
+對所有的 physical node 的 OTDM transmitter, OTDM receiver, OFDM transmitter, OFDM receiver 進行初始化
+
+```c++
+void Phy_graph::find_candidate_path()
+```
+對每一對 node pair 呼叫 `BFS_find_path()` 來尋找 candidate path
+
+```c++
+void Phy_graph::BFS_find_path(int source, int destination)
+```
+從 `source` 開始做 BFS 記錄每個 physical node 是被哪些在 BFS 上一層中的 physical node 發現的, 並記錄在 `parents` 中, 在呼叫 `DFS_back_trace()` 來列出所有的 candidate path
+```c++
+void Phy_graph::DFS_back_trace(int current_node, vector<Parents>& parents, list<CandidatePath>& path_set, CandidatePath& path)
+```
+一個 recursive function, 每次進來這個 function 先將 `current_node` 加入 path 這個暫存的路徑, 如果 `parents[current_node]` 是空的代表 DFS 找到 source node 了, 這個時候把 path // TODO start here
+```c++
+Phy_node& Phy_graph::get_node(int id)
+```
+```c++
+Phy_link& Phy_graph::get_link(int source, int destination)
+```
+```c++
+list<CandidatePath>& Phy_graph::get_path_list(int source, int destination)
+```
+```c++
+void Phy_graph::read_network_file(char* graph_file, int num_slots)
+```
+```c++
+Phy_node::Phy_node()
+```
+```c++
+Phy_node::~Phy_node()
+```
+```c++
+Phy_link::Phy_link()
+```
+```c++
+Phy_link::~Phy_link()
+```
+```c++
+Transceiver::Transceiver()
+```
+```c++
+Transceiver::~Transceiver()
+```
+```c++
+OFDMTransceiver::OFDMTransceiver(int transceiver_connection_limit)
+```
+```c++
+OFDMTransceiver::~OFDMTransceiver()
+```
+```c++
+CandidatePath::CandidatePath()
+```
+```c++
+CandidatePath::~CandidatePath()
+```
