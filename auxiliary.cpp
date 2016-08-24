@@ -154,12 +154,12 @@ Aux_graph::Aux_graph(Auxiliary_info& a_info)
     Aux_node* d_node;   // dropping node
     Aux_node* OFDM_WOB_v_t_node; // OFDM_WOB virtual transmitting node
     Aux_node* OFDM_WOB_v_r_node; // OFDM_WOB virtual receiving node
-    Aux_node* OFDM_WB_v_t_node; // groomed OFDM virtual transmitting node
-    Aux_node* OFDM_WB_v_r_node; // groomed OFDM virtual receiving node
-    Aux_node* OFDM_v_t_node; // new OFDM virtual transmitting node
-    Aux_node* OFDM_v_r_node; // new OFDM virtual receiving node
-    Aux_node* OTDM_v_t_node; // new OTDM virtual transmitting node
-    Aux_node* OTDM_v_r_node; // new OTDM virtual receiving node
+    Aux_node* OFDM_WB_v_t_node; // OFDM_WB virtual transmitting node
+    Aux_node* OFDM_WB_v_r_node; // OFDM_WB virtual receiving node
+    Aux_node* OFDM_v_t_node; // OFDM virtual transmitting node
+    Aux_node* OFDM_v_r_node; // OFDM virtual receiving node
+    Aux_node* OTDM_v_t_node; // OTDM virtual transmitting node
+    Aux_node* OTDM_v_r_node; // OTDM virtual receiving node
 
     for(int phy_node_i = 0; phy_node_i < a_info.num_nodes; phy_node_i++)
     {
