@@ -27,12 +27,10 @@ const double FIBER_NONLINEARITY_COEFFICIENT = 1.22;
 const double VELOCITY_DISPERSION_PARA = 16;
 const double TOTAL_FIBER_BANDWIDTH = 4;
 const double LIGHT_FREQUENCY = 196.1e3;
-// const double LIGHT_FREQUENCY = 192.1e3;
 const double PLANCK = 6.625e-34;
 const double PI = 3.1416;
 const double QPSK_OSNR = 17.5;
 const double OSNR[5] = {-1, -1, 0, 2, 4};
-// const double OSNR[5] = {-1, -1, 8, 13, 16};
 const int SPAN_LEN = 82;
 
 double d_osnr(int dis, int span_num, int span_len);
@@ -97,10 +95,8 @@ public:
     int source;
     int destination;
     int distance;
-    int num_remaining_slots;
     std::vector<int> slot;   // -1 -> free; 0 -> guardband; 1 -> occupied
     Phy_link();
-    Phy_link(int);
     virtual ~Phy_link();
 };
 
