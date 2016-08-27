@@ -36,19 +36,6 @@ struct Traffic_info
     int OC3072_share;
 };
 
-class Request
-{
-public:
-    int request_id;
-    int source;
-    std::set<int> destination;
-    int num_dest;
-    int bandwidth;
-    float arrival_time;
-    float holding_time;
-
-};
-
 class Event
 {
 public:
@@ -79,7 +66,6 @@ public:
     std::vector<double> source_matrix;
     std::vector<int> num_dest_matrix;
     std::list<Event> event_list;
-    std::vector<Request> request_list;
 
     int num_nodes;
     int num_requests;
