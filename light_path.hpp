@@ -35,8 +35,8 @@ public:
     std::vector<Aux_node*> receiving_node_list;
     std::list<Aux_link*> aux_link_list;
 
-    // transmitter_index[i] == -1 -> transmitter not used on Phy_node(p_path[i])
-    // transmitter_index[i] == id -> transmitter[id] used on Phy_node(p_path[i])
+    // transmitter_index[i] == -1 -> there are no transmitter on Phy_node(p_path[i]) used by this light path
+    // transmitter_index[i] == id -> transmitter[id] on Phy_node(p_path[i]) is used by this light path
     std::vector<int> transmitter_index;
     std::vector<int> receiver_index;
 
