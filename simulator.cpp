@@ -95,6 +95,10 @@ list<LightPath*> exist_OFDM_light_path_list;
 
 vector< vector<LightPath*> > request2lightpath;
 
+char* graph_file = (char*) "NSFnet.txt";
+char* source_file = (char*) "NSFnet_source.txt";
+char* traffic_file = (char*) "NSFnet_traffic.txt";
+
 
 typedef unordered_map<Aux_node*, double> Aux_node2Double;
 typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
@@ -127,9 +131,6 @@ double get_dist(Aux_node2Double& distTo, Aux_node* node);
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue);
 void print_result(Traffic traffic);
 
-char* graph_file = (char*) "NSFnet.txt";
-char* source_file = (char*) "NSFnet_source.txt";
-char* traffic_file = (char*) "NSFnet_traffic.txt";
 
 int main(int argc, char *argv[])
 {
