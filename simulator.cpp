@@ -76,11 +76,6 @@ int total_bandwidth = 0;
 int trail_usage_count = 0;
 int trail_usage_count_back = 0;
 
-double total_bandwidth_utilization=0;
-double used_bandwidth_utilization=0;
-double total_bandwidth_utilization_back=0;
-double used_bandwidth_utilization_back=0;
-
 // edge weight
 double eps = 0.03;
 double transceiver_weight = (1-eps) * 0.1;
@@ -88,11 +83,6 @@ double used_transceiver_weight = (1-eps) * 0.01;
 double OFDM_transceiver_weight = (1-eps) * 0.1;
 double used_OFDM_transceiver_weight = (1-eps) * 0.01;
 double OEO_weight = (1-eps) * 0.1;
-
-double extra_used_transmitter=0;
-double extra_used_transmitter_back=0;
-double extra_used_receiver=0;
-double extra_used_receiver_back=0;
 
 // police coeffcient
 double reserved_coefficent = 1;
