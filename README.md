@@ -360,9 +360,9 @@ int Phy_graph::get_reach(vector<int> path)
 ```c++
 Phy_graph::Phy_graph(Graph_info &g_info)
 ```
-1. call `read_network_file()`
-2. call `assign_transceivers()`
-3. call `find_candidate_path()`
+- call `read_network_file()`
+- call `assign_transceivers()`
+- call `find_candidate_path()`
 
 ```c++
 void Phy_graph::assign_transceivers(int num_OTDM_transceiver, int num_OFDM_transceiver, int transceiver_connection_limit)
@@ -378,49 +378,358 @@ void Phy_graph::find_candidate_path()
 void Phy_graph::BFS_find_path(int source, int destination)
 ```
 從 `source` 開始做 BFS 記錄每個 physical node 是被哪些在 BFS 上一層中的 physical node 發現的, 並記錄在 `parents` 中, 在呼叫 `DFS_back_trace()` 來列出所有的 candidate path
+
 ```c++
 void Phy_graph::DFS_back_trace(int current_node, vector<Parents>& parents, list<CandidatePath>& path_set, CandidatePath& path)
 ```
-一個 recursive function, 每次進來這個 function 先將 `current_node` 加入 path 這個暫存的路徑, 如果 `parents[current_node]` 是空的代表 DFS 找到 source node 了, 這個時候把 path // TODO start here
+一個 recursive function, 每次進來這個 function 先將 `current_node` push_back path 這個暫存的路徑, 如果 `parents[current_node]` 是空的代表 DFS 找到 source node 了, 這個時候把 `path` 複製成 `new_path` 並 reverse 成正確的方向(從 source node 到 destination node) 再呼叫 `get_reach()` 來取得最好的 modulation level 如果這個 `new_path` 有 modulation 可以用, 把 path 加入對應的 candidate path set 中, 處理完找到 source node 的情況之後再以 `parents[current_node]` 為下次的 `current_node` 做 recursive call, 最後把 `current_node` 從 `path` 中移除
+
 ```c++
 Phy_node& Phy_graph::get_node(int id)
 ```
+取的指定 physical node id 的 `Phy_node` object
+
 ```c++
 Phy_link& Phy_graph::get_link(int source, int destination)
 ```
+取的指定 node pair 的 `Phy_link` object
+
 ```c++
 list<CandidatePath>& Phy_graph::get_path_list(int source, int destination)
 ```
+取的指定 node pair 的 candidate path set
+
 ```c++
 void Phy_graph::read_network_file(char* graph_file, int num_slots)
 ```
+從指定檔案(graph_file) 中讀出 number of physical nodes, physical links 等資訊, 並建立對應的 physical node 及 physical link
+
+## light_path.hpp
+
+宣告 light path class
+
 ```c++
-Phy_node::Phy_node()
+typedef std::vector<int> Path;
 ```
+以 vector<int> 來表示一條 physical path, 記錄 path 經過的 physical node 的 id
+
+### LightPath
+
+LightPath 的 class
+
+- data
+  - `LightPath_type`: enumeration of types of auxiliary node
+  - `type`: the type of light path (ex. adding node dropping node)
+  - `requests`: 這個 light path 所傳輸的 requests 集合
+  - `modulation_level`: 這個 light path 的 modulation level
+  - `available_bitrate`: 這個 light path 還可以 grooming 新 requests 的 bitrate
+  - `weight`: 這個 light path 在 輔助圖上的 weight
+  - `spectrum`: 這個 light path 所使用的 spectrum
+  - `p_path`: 這個 light path 的 physical node path
+  - `transmitting_node_list`: 代表這個 light path 的 auxiliary transmitting node set
+  - `receiving_node_list`: 代表這個 light path 的 auxiliary receiving node set
+  - `aux_link_list`: 代表這個 light path 的 auxiliary link set
+  - `transmitter_index`: 用來記錄這個 light path 的 transmitter 使用情況
+    - `transmitter_index[i] == -1` 代表這個 light path 在 p_path[i] 這個 physical node 上沒有使用 transmitter
+    - `transmitter_index[i] == id` 代表這個 light path 在 p_path[i] 這個 physical node 上使用了 transmitter[id] 這個 transmitter
+  - `receiver_index`: 用來記錄這個 light path 的 receiver 使用情況
+    - `receiver_index[i] == -1` 代表這個 light path 在 p_path[i] 這個 physical node 上沒有使用 receiver
+    - `receiver_index[i] == id` 代表這個 light path 在 p_path[i] 這個 physical node 上使用了 receiver[id] 這個 receiver
+- function
+  - `LightPath()`: constructor of LightPath
+  - `~LightPath()`: destructor of LightPath
+
+## light_path.cpp
+
+定義所有 light_path.hpp 中宣告的 functions
+
+## spectrum.hpp
+
+宣告 spectrum class
+
+### Spectrum
+
+Spectrum 的 class
+
+- data
+  - `slot_st`: 一個 spectrum 的起始 slot id (id 比較小的為起始 id)
+  - `slot_ed`: 一個 spectrum 的結束 slot id (id 比較大的為結束 id)
+  - `weight`: 這個 spectrum 的 weight, 用來找出最好的 spectrum 時會拿出來比較
+- function
+  - `Spectrum()`: constructor of Spectrum
+  - `~Spectrum()`: destructor of Spectrum
+
+## spectrum.cpp
+
+定義所有 spectrum.hpp 中宣告的 functions
+
+## traffic.hpp
+
+宣告所有跟 requests 相關的 class
+
+### Traffic_info
+
+一個 struct 用來存放所有要帶進 traffic 的變數(ex. traffic file, number of physical nodes, time seed, reqeust bitrate share)
+
+### Event
+
+request event 的 class
+
+- data
+  - `event_type`: enumeration of types of request event
+  - `type`: the type of request event (ex. arrival, departure)
+  - `request_id`: 這個 event 所屬的 request id
+  - `source`: 這個 event (request) 的 source physical node
+  - `destination`: 這個 event (request) 的 destination physical nodes (為了方便以後改成 multicast 現在只會放一個 destination)
+  - `num_dest`: destination node 的數量 (為了方便以後改成 multicast 現在只會為 1)
+  - `bandwidth`: 這個 event (request) 所需要的 bitrate
+  - `arrival_time`: 這個 event (request) 的抵達時間
+  - `holding_time`: 這個 event (request) 在網路上停留的時間
+- function
+  - `operator <()`: 用來排序所有的 event 所需的 operator `<`
+  - `Event()`: constructor of Event
+  - `~Event()`: destructor of Event
+
+### Traffic
+
+所有 traffic 的 class
+
+- data
+  - `total_dest_count`: 用來記錄各個 node pair 的 request 數
+  - `traffic_matrix`: 記錄 request 從一個 physical node 到另一個 physical node 的機率
+  - `source_matrix`: 記錄一個 physical node 成為 request source 的機率
+  - `num_dest_matrix`: 記錄一個 source node 最多可以有多少個 destinations
+  - `event_list`: 存放所有的 request events 的 list
+  - `num_nodes`: 網路上所有 physical node 的數量
+  - `num_requests`: request 總數
+  - `total_OCx_share`: 所有 OCx_share 的加總, 用來計算各種 OCx request 出現的機率
+  - `OC1_ratio`: OC1 的 request 出現的機率
+  - `OC3_ratio`: OC3 的 request 出現的機率
+  - `OC9_ratio`: OC9 的 request 出現的機率
+  - `OC12_ratio`: OC12 的 request 出現的機率
+  - `OC18_ratio`: OC18 的 request 出現的機率
+  - `OC24_ratio`: OC24 的 request 出現的機率
+  - `OC36_ratio`: OC36 的 request 出現的機率
+  - `OC48_ratio`: OC48 的 request 出現的機率
+  - `OC192_ratio`: OC192 的 request 出現的機率
+  - `OC768_ratio`: OC768 的 request 出現的機率
+  - `OC3072_ratio`: OC3072 的 request 出現的機率
+  - `num_OC1_request`: OC1 request 的數量
+  - `num_OC3_request`: OC3 request 的數量
+  - `num_OC9_request`: OC9 request 的數量
+  - `num_OC12_request`: OC12 request 的數量
+  - `num_OC18_request`: OC18 request 的數量
+  - `num_OC24_request`: OC24 request 的數量
+  - `num_OC36_request`: OC36 request 的數量
+  - `num_OC48_request`: OC48 request 的數量
+  - `num_OC192_request`: OC192 request 的數量
+  - `num_OC768_request`: OC768 request 的數量
+  - `num_OC3072_request`: OC3072 request 的數量
+  - `traffic_lambda`: 模擬模型的 lambda
+  - `traffic_mu`: 模擬模型的 mu
+  - `unicast_percentage`: 產生 unicast request 的機率(現在都是設 1, 所有的 request 都是 unicast)
+  - `aTime_seed`: arrival time seed
+  - `hTime_seed`: holding time seed
+  - `s_seed`: source node seed
+  - `d_seed`: destination node seed
+  - `numD_seed`: number of destination seed
+  - `b_seed`: bandwidth seed
+- function
+  - `read_source_file()`: 從指定的檔案中讀出每個 node 成為 source 的機率, 以及最多能有多少的 destinations
+  - `read_traffic_file()`: 從指定的檔案中讀出每一個 source node 到每一個 destination node 的機率
+  - `generate_traffic()`: 一次產生所有 request 的 arrival event and departure event 並依時間排序
+  - `empty()`: 查看是否所有的 event 都已經被處理, 也就是 `event_list` 是否為 empty
+  - `next_event()`: 從 `event_list` 取出最前面的 event, 並將這個 event 從 `event_list` 中移除
+  - `delete_event()`: 當 request 被 block 時所使用, 從 `event_list` 中移除給定 request id 的 departure event
+  - `generate_num_dest()`: 隨機產生 number of destination (目前都會是 1, 因為 unicast_percentage 是 1)
+  - `generate_source()`: 隨機產生 source node
+  - `generate_destination()`: 隨機產生 destination node
+  - `generate_bandwidth()`: 隨機產生 request 的 bandwidth
+  - `random_number()`: 產生一個 0 到 1 之間的數
+  - `get_interarrival_time()`: 隨機產生 event 的 interarrival time
+  - `nextrand()`: 產生一個隨機數, 用來產生 `random_number()`
+  - `Traffic()`: constructor of Traffic
+  - `~Traffic()`: destructor of Traffic
+
+## traffic.cpp
+
+定義所有 traffic.hpp 中宣告的 functions
+
 ```c++
-Phy_node::~Phy_node()
+Traffic::Traffic(Traffic_info& t_info)
 ```
+- 把所有的 OCx_share 加總算出 `total_OCx_share`, 用 OCx_share 除以 `total_OCx_share` 算出各個 OCx_ratio
+- 初始化各個變數
+- call `read_source_file()`
+- call `read_traffic_file()`
+- call `generate_traffic()`
+
 ```c++
-Phy_link::Phy_link()
+void Traffic::read_source_file(char* source_file)
 ```
+從 source_file 中讀出每個 node 成為 source 的機率, 以及最多能有多少的 destinations
+
 ```c++
-Phy_link::~Phy_link()
+void Traffic::read_traffic_file(char* traffic_file)
 ```
+從檔案 traffic_file 中讀出每一個 source node 到每一個 destination node 的機率
+
 ```c++
-Transceiver::Transceiver()
+bool Traffic::empty()
 ```
+看 `event_list` 是否為空的
+
 ```c++
-Transceiver::~Transceiver()
+Event Traffic::next_event()
 ```
+從 `event_list` 取出最前面的 event, 並將這個 event 從 `event_list` 中移除
+
 ```c++
-OFDMTransceiver::OFDMTransceiver(int transceiver_connection_limit)
+void Traffic::delete_event(int request_id)
 ```
+掃過整個 `event_list` 找 event type 為 departure 且 request id 為指定 request id 的 event 並移除之
+
 ```c++
-OFDMTransceiver::~OFDMTransceiver()
+void Traffic::generate_traffic()
 ```
+一次產生一個 request, 一個 request 會有兩個 event 一個是這個 request arrival, 一個是這個 request departure, 使用 `generate_source()` 決定 request 的 source node, 使用 `generate_destination()` 決定 request 的 destination node, 使用 `generate_bandwidth()` 決定 request 的 bandwidth(所需要的 bitrate), 使用 `get_interarrival_time()` 來決定兩個 request arrival 間的間隔, 在使用一次 `get_interarrival_time()` 來決定 reqeust 的 holding time, 也就是 request 在網路上接受服務的時間, 把每一個 request 的兩種 event 都加入 `event_list` 中, 並在所有的 request 都產生完後, 對 `event_list` 進行排序
+
 ```c++
-CandidatePath::CandidatePath()
+int Traffic::generate_num_dest(int max_num_dest)
 ```
+使用 `random_number()` 產生一個隨機數, 如果產生出來的數字小於等於 `unicast_percentage`, return 1, 否則使用 `random_number()` 再決定有多少個 destinations (範圍是 2 到 `max_num_dest`)
+
 ```c++
-CandidatePath::~CandidatePath()
+int Traffic::generate_source()
 ```
+使用 `random_number()` 產生一個隨機數, 看產生數字落在的範圍決定使用哪個 node 當 source
+
+```c++
+int Traffic::generate_destination(int source)
+```
+使用 `random_number()` 產生一個隨機數, 看產生數字落在的範圍決定使用哪個 node 當 destination
+
+```c++
+int Traffic::generate_bandwidth()
+```
+使用 `random_number()` 產生一個隨機數, 看產生數字落在的範圍決定使用哪個 OCx 當 bandwidth
+
+```c++
+bool Event::operator <(const Event& a) const
+```
+以 event 的 arrival time 為比較的根據
+
+```c++
+float Traffic::random_number( int seed )
+```
+產生一個 0 到 1 之間的數
+
+```c++
+double Traffic::get_interarrival_time( float mean, int seed )
+```
+隨機產生 event 的 interarrival time
+
+```c++
+long long Traffic::nextrand( long long& seed )
+```
+產生一個隨機數, 用來產生 `random_number()`
+
+## simulator.cpp
+
+- variables
+start_clk;
+start_clk_finding;
+clk_finding;
+start_clk_construction;
+clk_construction;
+start_clk_parsing;
+clk_parsing;
+
+hop_limit;
+unicast_percentage;
+num_requests;
+num_slots;
+num_nodes;
+traffic_lambda;
+traffic_mu;
+num_transceiver;
+num_OTDM_transceiver;
+num_OFDM_transceiver;
+slot_capacity;
+transceiver_slot_limit;
+transceiver_connection_limit;
+num_guardband_slot;
+enable_OTDM;
+OTDM_threshold;
+
+// request bandwidth share
+OC1_share;
+OC3_share;
+OC9_share;
+OC12_share;
+OC18_share;
+OC24_share;
+OC36_share;
+OC48_share;
+OC192_share;
+OC768_share;
+OC3072_share;
+
+//random_variables
+aTime_seed;
+hTime_seed;
+s_seed;
+d_seed;
+numD_seed;
+b_seed;
+
+//result variable
+accepted_requests;
+blocked_requests;
+blocked_bandwidth;
+num_OEO;
+num_OFDM_lightpath_use;
+num_OTDM_lightpath_use;
+total_bandwidth;
+trail_usage_count;
+trail_usage_count_back;
+
+// edge weight
+eps = 0.03;
+transceiver_weight;
+used_transceiver_weight = (1-eps) * 0.01;
+OFDM_transceiver_weight = (1-eps) * 0.1;
+used_OFDM_transceiver_weight = (1-eps) * 0.01;
+OEO_weight = (1-eps) * 0.1;
+
+// police coeffcient
+reserved_coefficent = 1;
+cut_coeffcient = 1;
+align_coeffcient = 1;
+
+candidate_light_path_list;
+exist_OTDM_light_path_list;
+exist_OFDM_light_path_list;
+
+request2lightpath;
+
+graph_file = (char*) "NSFnet.txt";
+source_file = (char*) "NSFnet_source.txt";
+traffic_file = (char*) "NSFnet_traffic.txt";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
