@@ -636,90 +636,165 @@ long long Traffic::nextrand( long long& seed )
 
 ## simulator.cpp
 
-- variables
-start_clk;
-start_clk_finding;
-clk_finding;
-start_clk_construction;
-clk_construction;
-start_clk_parsing;
-clk_parsing;
+整個程式的 main function
 
-hop_limit;
-unicast_percentage;
-num_requests;
-num_slots;
-num_nodes;
-traffic_lambda;
-traffic_mu;
-num_transceiver;
-num_OTDM_transceiver;
-num_OFDM_transceiver;
-slot_capacity;
-transceiver_slot_limit;
-transceiver_connection_limit;
-num_guardband_slot;
-enable_OTDM;
-OTDM_threshold;
+### variables
+- `start_clk`: simulation 開始時間 in clock
+- `start_clk_finding`: 每一次 bellmanford 開始前的時間 in clock
+- `clk_finding`: 花在 bellmanford 上的總時間 in second
+- `start_clk_construction`: 每一次 construct auxiliary graph 開始前的時間 in clock 
+- `clk_construction`: 花在 construct auxiliary graph 上的總時間 in second
+- `start_clk_parsing`: 每一次做 path parsing 開始前的時間 in clock
+- `clk_parsing`: 花在 path parsing 上的總時間 in second
+- `hop_limit`: hop 數限制
+- `unicast_percentage`: unicast request 的比例 (0 ~ 1)
+- `num_requests`: total number of requests
+- `num_slots`: 一個 physical link 上的 frequency slot 數
+- `num_nodes`: total number of physical nodes
+- `traffic_lambda`: 模擬模型的 lambda
+- `traffic_mu`: 模擬模型的 mu
+- `num_transceiver`: 一個 physical node 每多一個 neighbor 所給定的 transceiver 數 (OTDM, OFDM 各分一半)
+- `num_OTDM_transceiver`: 一個 physical node 每多一個 neighbor 所給定的 OTDM transceiver 數
+- `num_OFDM_transceiver`: 一個 physical node 每多一個 neighbor 所給定的 OFDM transceiver 數
+- `slot_capacity`: 一個 slot 的 capacity
+- `transceiver_slot_limit`: 一個 transceiver 最多能控制的 slot 數
+- `transceiver_connection_limit`: 一個 transceiver 最多能建立的 connection 數
+- `num_guardband_slot`: guard band 所需要的 slot 數
+- `enable_OTDM`: 是否使用 OTDM light path, 0 -> OFDM, 1 -> OFDM + OTDM
+- `OTDM_threshold`: 決定是否要傾向使用 OTDM light path 的 threshold, 一個 light path 的剩餘 bandwidth 量如果大於這個 threshold 則傾向使用 OTDM
+- `OC1_share`: OC1 request 所佔的份數
+- `OC3_share`: OC3 request 所佔的份數
+- `OC9_share`: OC9 request 所佔的份數
+- `OC12_share`: OC12 request 所佔的份數
+- `OC18_share`: OC18 request 所佔的份數
+- `OC24_share`: OC24 request 所佔的份數
+- `OC36_share`: OC36 request 所佔的份數
+- `OC48_share`: OC48 request 所佔的份數
+- `OC192_share`: OC192 request 所佔的份數
+- `OC768_share`: OC768 request 所佔的份數
+- `OC3072_share`: OC3072 request 所佔的份數
+- `aTime_seed`: arrival time seed
+- `hTime_seed`: holding time seed
+- `s_seed`: source node seed
+- `d_seed`: destination node seed
+- `numD_seed`: number of destination seed
+- `b_seed`: bandwidth seed
+- `accepted_requests`: total number of accepted requests
+- `blocked_requests`: total number of blocked requests
+- `blocked_bandwidth`: total bandwidth of blocked requests
+- `num_OEO`: total number of OEO
+- `num_OFDM_lightpath_use`: 使用 OFDM light path 的次數
+- `num_OTDM_lightpath_use`: 使用 OTDM light path 的次數
+- `total_bandwidth`: total bandwidth of all requests
+- `eps`: 一個用來調整 weight 的變數
+- `transceiver_weight`: OTDM virtual adding link weight
+- `used_transceiver_weight`: OTDM adding link weight
+- `OFDM_transceiver_weight`: OFDM virtual adding link weight
+- `used_OFDM_transceiver_weight`: OFDM adding link weight
+- `OEO_weight`: grooming link weight
+- `reserved_coefficent`: 計算 spectrum weight 裡, 考慮 reserved 的係數
+- `cut_coeffcient`: 計算 spectrum weight 裡, 考慮 cut 的係數
+- `align_coeffcient`: 計算 spectrum weight 裡, 考慮 align 的係數
+- `candidate_light_path_list`: 存放所有的 candidate light path
+- `exist_OTDM_light_path_list`: 存放所有已被建立的 OTDM light path
+- `exist_OFDM_light_path_list`: 存放所有已被建立的 OFDM light path
+- `request2lightpath`: 一個資料結構, 用來查詢 request 是被 assign 到哪幾條 light path
+- `graph_file`: graph file name
+- `source_file`: source file name
+- `traffic_file`: traffic file name
 
-// request bandwidth share
-OC1_share;
-OC3_share;
-OC9_share;
-OC12_share;
-OC18_share;
-OC24_share;
-OC36_share;
-OC48_share;
-OC192_share;
-OC768_share;
-OC3072_share;
+### functions
 
-//random_variables
-aTime_seed;
-hTime_seed;
-s_seed;
-d_seed;
-numD_seed;
-b_seed;
+```c++
+int main(int argc, char *argv[])
+```
+- 讀取 argv 並 assign 值到對應的變數
+- 建立 `Phy_graph` object 建立 physical graph
+- 建立 `Traffic` object 產生所有的 requests
+- 建立 `Aux_graph` object 產生所有的初始的 auxiliary graph
+- 依序處理所有的 events
+  - arrival event
+    - call `construct_candidate_path()` and `construct_exist_path()` 建立對應這個 request 的輔助圖
+    - call `BellmanFordSP()` 找輔助圖上最低 cost 的 path
+    - 根據 `BellmanFordSP()` 的結果決定是否執行 `path_paring()` 找出並建立最好的那條 light path
+    - call `reset_auxiliary_graph()` 還原輔助圖到最初建立的狀況以便下一輪使用
+  - departure event
+    - 根據 `request2lightpath` 移除 exist light path 上所有的 departure request
+    - 如果有 light path 上沒有任何的 request, 則移除這條 light path 並釋放資源
+    - 如果 light path 還有 request, 則更新 light path 的 `available_bitrate`
+- call `print_result()` output 所有統計的結果到檔案
+ 
+```c++
+void construct_exist_path(Event& event, Aux_graph& a_graph)
+```
+對所有 exist OTDM light path 建立輔助圖上對應的 node and link
 
-//result variable
-accepted_requests;
-blocked_requests;
-blocked_bandwidth;
-num_OEO;
-num_OFDM_lightpath_use;
-num_OTDM_lightpath_use;
-total_bandwidth;
-trail_usage_count;
-trail_usage_count_back;
-
-// edge weight
-eps = 0.03;
-transceiver_weight;
-used_transceiver_weight = (1-eps) * 0.01;
-OFDM_transceiver_weight = (1-eps) * 0.1;
-used_OFDM_transceiver_weight = (1-eps) * 0.01;
-OEO_weight = (1-eps) * 0.1;
-
-// police coeffcient
-reserved_coefficent = 1;
-cut_coeffcient = 1;
-align_coeffcient = 1;
-
-candidate_light_path_list;
-exist_OTDM_light_path_list;
-exist_OFDM_light_path_list;
-
-request2lightpath;
-
-graph_file = (char*) "NSFnet.txt";
-source_file = (char*) "NSFnet_source.txt";
-traffic_file = (char*) "NSFnet_traffic.txt";
-
-
-
-
+```c++
+void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
+```
+```c++
+void reset_auxiliary_graph()
+```
+```c++
+void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
+```
+```c++
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
+```
+```c++
+void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event)
+```
+```c++
+int num_spectrum_available(Phy_link& link, int slot_st, int slot_ed)
+```
+```c++
+int spectrum_available(Phy_link& link, int slot_st, int slot_ed)
+```
+```c++
+int path_spectrum_available(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
+```
+```c++
+int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
+```
+```c++
+int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
+```
+```c++
+int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
+```
+```c++
+double weigh_path_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
+```
+```c++
+Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
+```
+```c++
+int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers)
+```
+```c++
+LightPath* get_best_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+```
+```c++
+LightPath* get_best_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+```
+```c++
+LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+```
+```c++
+LightPath* get_best_OFDM_WOB_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
+```
+```c++
+Aux_node2Aux_link BellmanFordSP(Aux_node* s)
+```
+```c++
+double get_dist(Aux_node2Double& distTo, Aux_node* node)
+```
+```c++
+void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue)
+```
+```c++
+void print_result(Traffic traffic)
+```
 
 
 
