@@ -752,9 +752,6 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
             build_light_path(p_graph, aux_link->light_path, aux_link->from, aux_link->to, event.request_id);
             break;
         case Aux_link::spectrum_link:
-            // cout << aux_link << "\n";
-            // cout << aux_link->light_path << "\n";
-            // cout << aux_link->light_path->requests.size() << "\n";
             if(aux_link->light_path->requests.find(event.request_id) == aux_link->light_path->requests.end())
             {
                 request2lightpath[event.request_id].push_back(aux_link->light_path);
@@ -1119,7 +1116,6 @@ LightPath* get_best_OFDM_light_path(int source, int destination, Event& event, P
 LightPath* get_best_OFDM_WOB_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 {
     Phy_node& src_node = p_graph.get_node(source);
-    // Phy_node& dst_node = p_graph.get_node(destination);
 
     Spectrum path_spectrum, best_path_spectrum;
     double current_weight;
@@ -1154,7 +1150,7 @@ LightPath* get_best_OFDM_WOB_light_path(int source, int destination, Event& even
         int slot_st;
         int slot_ed;
 
-        // find the spectrum above the exisiting LightPath
+        // find the spectrum over the exisiting LightPath
         slot_st = lp->spectrum.slot_st - require_slots;
         slot_ed = lp->spectrum.slot_st - 1;
         if(slot_st >= 0 && slot_ed >= 0)
@@ -1273,14 +1269,11 @@ LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event
                 continue;
             }
 
-            if(split_node_i == (int)lp->p_path.size()-1) // use eletrical grooming instead
+            if(split_node_i == (int)lp->p_path.size()-1) // use OFDM WOB instead
             {
                 continue;
             }
 
-            // cout << "lpath size : " << lp->p_path.size() << '\n';
-            // cout << "cpath size : " << c_path.path.size() << '\n';
-            // cout << "split_node_i : " << split_node_i << '\n';
 
             Path trunk(lp->p_path.begin(), lp->p_path.begin() + split_node_i);
             Path branch(lp->p_path.begin() + split_node_i, lp->p_path.end());
@@ -1302,7 +1295,7 @@ LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event
             int b_slot_st;  // start slot for branch
             int b_slot_ed;  // end slot for branch
 
-            // Trunk part
+            // spectrum over the exisiting LightPath
             t_slot_st = transmitter_sp.slot_st - trunk_require_slots;
             t_slot_ed = lp->spectrum.slot_st - 1;
 
@@ -1328,6 +1321,7 @@ LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event
                 }
             }
 
+            // spectrum under the exisiting LightPath
             t_slot_st = lp->spectrum.slot_ed + 1;
             t_slot_ed = lp->spectrum.slot_ed + trunk_require_slots;
 
