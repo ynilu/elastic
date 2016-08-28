@@ -257,12 +257,6 @@ int main(int argc, char *argv[])
 
     request2lightpath.resize(num_requests);
 
-    // Phy_node& a = p_graph.get_node(0);
-    // Phy_link& b = p_graph.get_link(0,1);
-
-    // cout << a.degree << '\n';
-    // cout << b.source << '\n';
-
     Auxiliary_info a_info;
     a_info.num_nodes = num_nodes;
     a_info.num_slots = num_slots;
@@ -272,25 +266,6 @@ int main(int argc, char *argv[])
     a_info.used_OFDM_transceiver_weight = used_OFDM_transceiver_weight;
     a_info.OEO_weight = OEO_weight;
     Aux_graph a_graph(a_info);
-
-    // for(int source = 0; source < p_graph.node_list.size(); source++)
-    // {
-    //     for(int destination = 0; destination < p_graph.node_list.size(); destination++)
-    //     {
-    //         list<Path>& a = p_graph.get_path_list(source, destination);
-    //         for(auto &path : a)
-    //         {
-    //             for(auto &node : path.path)
-    //             {
-    //                 cout << node << " ";
-    //             }
-    //             cout << '\n';
-    //         }
-    //     }
-    // }
-
-    // cout << p_graph.get_node(0).OFDMtransmitter[0].sub_transceiver.size() << '\n';
-    // cout << p_graph.get_node(0).OFDMtransmitter.size() << '\n';
 
     while( !traffic.empty() )
     {
