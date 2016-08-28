@@ -717,7 +717,7 @@ int main(int argc, char *argv[])
     - call `construct_candidate_path()` and `construct_exist_path()` 建立對應這個 request 的輔助圖
     - call `BellmanFordSP()` 找輔助圖上最低 cost 的 path
     - 根據 `BellmanFordSP()` 的結果決定是否執行 `path_paring()` 找出並建立最好的那條 light path
-    - call `reset_auxiliary_graph()` 還原輔助圖到最初建立的狀況以便下一輪使用
+    - call `reset_auxiliary_graph()` 還原輔助圖到最初建立的狀況, 以便下一輪使用
   - departure event
     - 根據 `request2lightpath` 移除 exist light path 上所有的 departure request
     - 如果有 light path 上沒有任何的 request, 則移除這條 light path 並釋放資源
@@ -727,74 +727,164 @@ int main(int argc, char *argv[])
 ```c++
 void construct_exist_path(Event& event, Aux_graph& a_graph)
 ```
-對所有 exist OTDM light path 建立輔助圖上對應的 node and link
+對所有 exist OTDM light path 建立輔助圖上對應的 node and link // TODO may be more detail
 
 ```c++
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
 ```
+對每一對 physical node pair 找出最好的 light path 並建立對應的 auxiliary candidate link
+- 如果 `enable_OTDM` 不為 0, call `best_OTDM_light_path()` 找出最好的 OTDM light path 並建立 candidate link
+- call `best_OFDM_light_path()` 找出最好的 OFDM light path 並建立 candidate link
+- call `best_OFDM_WB_light_path()` 找出最好的 OFDM WB light path 並建立 candidate link
+- call `best_OFDM_WOB_light_path()` 找出最好的 OFDM WOB light path 並建立 candidate link
+
 ```c++
 void reset_auxiliary_graph()
 ```
+還原輔助圖到最初建立的狀況, 以便下一輪使用
+- 移除所有屬於 exist OTDM light path 的 transmitting node 以及 receiving node, 這個動作同時會移除與這些 node 相連的 auxiliary link
+- 移除所有屬於 candidate light path 的 candidate link
+- 清空 candidate light path list
+
 ```c++
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
 ```
+- 根據傳入的 `lpath` 的 type 取出對應 layer 的 virtual transmitting node and virtual receiving node
+- 再取出的 virtual transmitting node and virtual receiving node 之間建立新的 candidate link `c_link`
+- 在 `c_link` 上記錄其所對應的 light path `lpath`
+- 在 `lpath` 上記錄其所對應的 candidate link `c_link`
+- 將 `lpath` 加入 candidate light path list
+
 ```c++
 void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
 ```
+實際在網路上將 candidate path 建立, 成為 exist light path
+- 新建一個 light path object
+- 在 `request2lightpath` 中記錄當前 request 和新建立的 light path 的關係
+- assign transceiver 資源給新建的 light path
+- 將新建 light path 使用的 slots mark as used and guard band
+- 將新建的 light path 加入對應的 exist light path list
+
 ```c++
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event)
 ```
+對輔助圖上找到的最佳路徑進行分析, 建立對應的 path 或是更新資源運用情況
+- 一一處理所有最佳路徑所經過的 auxiliary links
+- 如果經過 candidate link 代表需要新建 light path, call `build_light_path` 並建立 candidate link 所記錄的 light path
+- 如果經過 spectrum link 代表 request 經過 exist OTDM light path, 如果經過的 light path 上沒有 request 的紀錄, 就把 request 加入 light path 並更新 `available_bitrate` (因為一個 request 可能經過同一個 OTDM light path 的不同個 spectrum link)
+- 如果經過 grooming link 代表 request 經過了一次 OEO
+- 如果經過 virtual adding link 代表 request 在還沒有 assign transmitter 的 OTDM light path intermediate node 進行 adding, 需要 assign 新的 transmitter
+- 如果經過 virtual dropping link 代表 request 在還沒有 assign receiver 的 OTDM light path intermediate node 進行 dropping, 需要 assign 新的 receiver
+
 ```c++
 int num_spectrum_available(Phy_link& link, int slot_st, int slot_ed)
 ```
+計算一個 physical link 在指定的 slot 範圍內有多少的 available(free) slots 
+
 ```c++
 int spectrum_available(Phy_link& link, int slot_st, int slot_ed)
 ```
+測試指定的 link 的指定 slot 範圍是否都是 available(free) slots, 如果是回傳 `-1`, 否則回傳離 slot 0 距離最遠的 available slot, 這樣在找可用的 spectrum 時能讓上層的 function 知道下一個嘗試範圍要從哪開始
+
 ```c++
 int path_spectrum_available(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 ```
+測試指定 physical path 的所有 link 的指定 slot 範圍是否都是 available(free) slots, 如果是回傳 `-1`, 否則回傳發現 used slot 的 link 上離 slot 0 距離最遠的 available slot, 這樣在找可用的 spectrum 時能讓上層的 function 知道下一個嘗試範圍要從哪開始
+
 ```c++
 int get_distance(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 ```
+指定 physical path 上所有 link 的給定 slot 範圍周遭嘗試尋找 used slot (也就是其他的 light path), 並計算與其他 light path 之間的距離
+
 ```c++
 int get_cut_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 ```
+計算指定 physical path 上的 cut 數量, 也就是給定 slot 範圍的兩旁是否是 available slot, 如果是 available slot, cut + 1
+
 ```c++
 int get_align_num(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 ```
+對給定 physical path 上每一條 link 計算 alignment, 也就是給定 path 上 link 的 neighbor link 在給定 slot 範圍的 available slot 數
+
 ```c++
 double weigh_path_spectrum(Path& path, int slot_st, int slot_ed, Phy_graph& p_graph)
 ```
+對給定的 physical path 以及給訂的 slot 範圍計算出一個 weight 值
+
 ```c++
 Spectrum find_best_spectrum(Path& path, int require_slots, Phy_graph& p_graph)
 ```
-```c++
-int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers)
-```
+給定 physical path 以及需要的 slot 數, 利用 `path_spectrum_available()` 以及 `weigh_path_spectrum()` 找出 weight 最小的 spectrum, 如果沒有可用的 spectrum, 則回傳一個 `slot_st` 以及 `slot_ed` 為 `-1` 的 spectrum
+
 ```c++
 LightPath* get_best_OTDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 ```
+對給定的 node pair 找出最好的 OTDM candidate light path
+- 先確定在 source node 及 destination node 上有足夠的 OTDM transceiver 可以用來建立此條 light path
+- 利用 `find_best_spectrum()` 找出最好的 spectrum, 比較不同 path 的 spectrum, 找出最好的 path spectrum 組合
+- 建立新的 light path object 並回傳
+
+```c++
+int get_available_OFDM_transceiver(vector<OFDMTransceiver>& transceivers)
+```
+給定一個 transceiver vector, 回傳 id 最小的 available OFDM transceiver
+
 ```c++
 LightPath* get_best_OFDM_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 ```
+對給定的 node pair 找出最好的 OFDM candidate light path
+- 先確定在 source node 及 destination node 上有足夠的 OFDM transceiver 可以用來建立此條 light path
+- 利用 `find_best_spectrum()` 找出最好的 spectrum, 並比較不同 path 的 spectrum, 找出最好的 path spectrum 組合
+- 建立新的 light path object 並回傳
+- 如果找不到可用的 light path 回傳 NULL
+
 ```c++
 LightPath* get_best_OFDM_WB_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 ```
+對給定的 node pair 找出最好的 OFDM WB candidate light path
+- 先確定在 destination node 上有足夠的 OFDM receiver 可以用來建立此條 light path
+- 嘗試讓每一條 candidate physical path 與 exist OFDM light path 做 optical grooming (With Branch)
+- 確定 exist OFDM light path 的 transmitter 有足夠的可用 slot 以及 sub-transceiver
+- 依序比對 candidate physical path 與 exist OFDM light path 的 physical nodes 找出他們在哪個 physical node 分叉
+- 將 candidate physical path 分成兩段(分叉前 -> trunk, 分叉後 -> branch)
+- 往 exist OFDM light path 的周遭尋找可用的 spectrum (trunk 與 branch 的範圍不同), 並利用 `weigh_path_spectrum()` 找出最好的 spectrum (以 branch 的 slot 範圍計算)
+- 建立新的 light path object 並回傳
+- 如果找不到可用的 light path 回傳 NULL
+
 ```c++
 LightPath* get_best_OFDM_WOB_light_path(int source, int destination, Event& event, Phy_graph& p_graph)
 ```
+對給定的 node pair 找出最好的 OFDM WOB candidate light path
+- 對每一條 exist OFDM light path 作嘗試
+- 確定 exist OFDM light path 的 convener node 與指定的 source node 相同, end node 與指定的 destination node 相同
+- 確定 exist OFDM light path 的 transceiver 有足夠的可用 slot 以及 sub-transceiver
+- 往 exist OFDM light path 的周遭尋找可用的 spectrum, 並利用 `weigh_path_spectrum()` 找出最好的 spectrum
+- 建立新的 light path object 並回傳
+- 如果找不到可用的 light path 回傳 NULL
+
 ```c++
 Aux_node2Aux_link BellmanFordSP(Aux_node* s)
 ```
+Queue based BellmanFord 參考下列網頁
+- http://algs4.cs.princeton.edu/44sp/
+- http://algs4.cs.princeton.edu/44sp/BellmanFordSP.java.html
+
 ```c++
 double get_dist(Aux_node2Double& distTo, Aux_node* node)
 ```
+回傳從 source node 到給定 node 的最小 cost, 沒有 access 過的 node assign 並回傳 double 的最大值
+
 ```c++
 void relax(Aux_node* v, Aux_node2Double& distTo, Aux_node2Aux_link& edgeTo, Aux_node2Bool& onQueue, queue<Aux_node*>& queue)
 ```
+Queue based BellmanFord 參考下列網頁
+- http://algs4.cs.princeton.edu/44sp/
+- http://algs4.cs.princeton.edu/44sp/BellmanFordSP.java.html
+
 ```c++
 void print_result(Traffic traffic)
 ```
+產生檔案名稱, 並印出需要的資訊
 
 
 
