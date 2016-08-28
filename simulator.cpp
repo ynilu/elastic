@@ -103,8 +103,8 @@ typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
 void construct_exist_path(Event& event, Aux_graph& a_graph);
-void reset_auxiliary_graph();
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
+void reset_auxiliary_graph();
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
 void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id);
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
@@ -266,6 +266,7 @@ int main(int argc, char *argv[])
     a_info.used_OFDM_transceiver_weight = used_OFDM_transceiver_weight;
     a_info.OEO_weight = OEO_weight;
     Aux_graph a_graph(a_info);
+
 
     while( !traffic.empty() )
     {
@@ -430,6 +431,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
             d_node = a_graph.get_dropping_node(phy_node_id);
 
             t_node = a_graph.create_aux_node(phy_node_id, Aux_node::transmitting_node);
+
             lp->transmitting_node_list.push_back(t_node);
 
             r_node = a_graph.create_aux_node(phy_node_id, Aux_node::receiving_node);
@@ -475,6 +477,32 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
     }
 }
 
+void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
+{
+    for(int source = 0; source < num_nodes; source++)
+    {
+        for(int destination = 0; destination < num_nodes; destination++)
+        {
+            if(source == destination)
+            {
+                continue;
+            }
+
+            if(enable_OTDM)
+            {
+                LightPath* OTDM_lp = get_best_OTDM_light_path(source, destination, event, p_graph);
+                build_candidate_link(a_graph, OTDM_lp);
+            }
+            LightPath* OFDM_lp = get_best_OFDM_light_path(source, destination, event, p_graph);
+            build_candidate_link(a_graph, OFDM_lp);
+            LightPath* OFDM_WB_lp = get_best_OFDM_WB_light_path(source, destination, event, p_graph);
+            build_candidate_link(a_graph, OFDM_WB_lp);
+            LightPath* OFDM_WOB_lp = get_best_OFDM_WOB_light_path(source, destination, event, p_graph);
+            build_candidate_link(a_graph, OFDM_WOB_lp);
+        }
+    }
+}
+
 void reset_auxiliary_graph()
 {
     for(auto &lp : exist_OTDM_light_path_list)
@@ -500,32 +528,6 @@ void reset_auxiliary_graph()
         delete lp;
     }
     candidate_light_path_list.clear();
-}
-
-void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
-{
-    for(int source = 0; source < num_nodes; source++)
-    {
-        for(int destination = 0; destination < num_nodes; destination++)
-        {
-            if(source == destination)
-            {
-                continue;
-            }
-
-            if(enable_OTDM)
-            {
-                LightPath* OTDM_lp = get_best_OTDM_light_path(source, destination, event, p_graph);
-                build_candidate_link(a_graph, OTDM_lp);
-            }
-            LightPath* OFDM_lp = get_best_OFDM_light_path(source, destination, event, p_graph);
-            build_candidate_link(a_graph, OFDM_lp);
-            LightPath* OFDM_WB_lp = get_best_OFDM_WB_light_path(source, destination, event, p_graph);
-            build_candidate_link(a_graph, OFDM_WB_lp);
-            LightPath* OFDM_WOB_lp = get_best_OFDM_WOB_light_path(source, destination, event, p_graph);
-            build_candidate_link(a_graph, OFDM_WOB_lp);
-        }
-    }
 }
 
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
