@@ -102,7 +102,7 @@ typedef unordered_map<Aux_node*, double> Aux_node2Double;
 typedef unordered_map<Aux_node*, Aux_link*> Aux_node2Aux_link;
 typedef unordered_map<Aux_node*, bool> Aux_node2Bool;
 
-void construct_exist_path(Event& event, Aux_graph& a_graph);
+void construct_exist_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void reset_auxiliary_graph();
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
             cout << "arrival :\nid = " << event.request_id << "\nsource = " << event.source << "\ndest = " << *event.destination.begin() << "\nbandwidth = " << event.bandwidth << "\narrivaltime = " << event.arrival_time << "\n\n";
             start_clk_construction = clock();
             construct_candidate_path(event, p_graph, a_graph);
-            construct_exist_path(event, a_graph);
+            construct_exist_path(event, p_graph, a_graph);
             clk_construction += (double) ( clock() - start_clk_construction ) / CLOCKS_PER_SEC;
             start_clk_finding = clock();
             Aux_node* aux_source = a_graph.get_adding_node(event.source);
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void construct_exist_path(Event& event, Aux_graph& a_graph)
+void construct_exist_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph)
 {
     for(auto &lp : exist_OTDM_light_path_list)
     {
@@ -445,7 +445,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
             {
                 aux_link = a_graph.create_aux_link(a_node, t_node, used_transceiver_weight, Aux_link::adding_link);
             }
-            else
+            else if(p_graph.get_node(lp->p_path[i]).num_available_transmitter > 0)
             {
                 aux_link = a_graph.create_aux_link(a_node, t_node, transceiver_weight, Aux_link::virtual_adding_link);
             }
@@ -457,7 +457,7 @@ void construct_exist_path(Event& event, Aux_graph& a_graph)
             {
                 aux_link = a_graph.create_aux_link(r_node, d_node, used_transceiver_weight, Aux_link::dropping_link);
             }
-            else
+            else if(p_graph.get_node(lp->p_path[i]).num_available_receiver > 0)
             {
                 aux_link = a_graph.create_aux_link(r_node, d_node, transceiver_weight, Aux_link::virtual_dropping_link);
             }
