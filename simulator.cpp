@@ -73,8 +73,6 @@ int num_OEO = 0;
 int num_OFDM_lightpath_use = 0;
 int num_OTDM_lightpath_use = 0;
 int total_bandwidth = 0;
-int trail_usage_count = 0;
-int trail_usage_count_back = 0;
 
 // edge weight
 double eps = 0.03;
