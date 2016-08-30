@@ -756,7 +756,7 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
 - 將 `lpath` 加入 candidate light path list
 
 ```c++
-void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
 ```
 實際在網路上將 candidate path 建立, 成為 exist light path
 - 新建一個 light path object
