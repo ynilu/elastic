@@ -27,6 +27,7 @@ double clk_construction = 0;
 clock_t start_clk_parsing;
 double clk_parsing = 0;
 
+int num_batch = 10;
 int hop_limit = 7;
 float unicast_percentage = 1.0;
 int num_requests = 1000;
@@ -73,6 +74,18 @@ int num_OEO = 0;
 int num_OFDM_lightpath_use = 0;
 int num_OTDM_lightpath_use = 0;
 int total_bandwidth = 0;
+int total_network_bandwidth=0;
+vector<int> accepted_requests_BM;
+vector<int> blocked_requests_BM;
+vector<int> blocked_bandwidth_BM;
+vector<int> num_OEO_BM;
+vector<int> num_OFDM_lightpath_use_BM;
+vector<int> num_OTDM_lightpath_use_BM;
+double total_bandwidth_utilization;
+double used_bandwidth_utilization;
+double wasted_bandwidth_utilization;
+double guardband_bandwidth_utilization;
+double end_time;
 
 // edge weight
 double eps = 0.03;
@@ -106,7 +119,7 @@ void construct_exist_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void construct_candidate_path(Event& event, Phy_graph& p_graph, Aux_graph& a_graph);
 void reset_auxiliary_graph();
 void build_candidate_link(Aux_graph& a_graph, LightPath* lpath);
-void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id);
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
 void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_source, Aux_node* aux_destination, Event& event);
 
 int num_spectrum_available(Phy_link& link, int slot_st, int slot_ed);
@@ -212,6 +225,13 @@ int main(int argc, char *argv[])
 
     start_clk = clock();
 
+    accepted_requests_BM.resize(num_batch, 0);
+    blocked_requests_BM.resize(num_batch, 0);
+    blocked_bandwidth_BM.resize(num_batch, 0);
+    num_OEO_BM.resize(num_batch, 0);
+    num_OFDM_lightpath_use_BM.resize(num_batch, 0);
+    num_OTDM_lightpath_use_BM.resize(num_batch, 0);
+
     Graph_info g_info;
     g_info.graph_file = graph_file;
     g_info.num_slots = num_slots;
@@ -288,11 +308,14 @@ int main(int argc, char *argv[])
             {
                 path_parsing(p_graph, result, aux_source, aux_destination, event);
                 accepted_requests++;
+                accepted_requests_BM[(int)event.request_id/(num_requests/num_batch)]++;
             }
             else
             {
                 blocked_requests++;
+                blocked_requests_BM[(int)event.request_id/(num_requests/num_batch)]++;
                 blocked_bandwidth += event.bandwidth;
+                blocked_bandwidth_BM[(int)event.request_id/(num_requests/num_batch)] += event.bandwidth;
             }
             clk_parsing += (double) ( clock() - start_clk_parsing ) / CLOCKS_PER_SEC;
             total_bandwidth += event.bandwidth;
@@ -397,8 +420,10 @@ int main(int argc, char *argv[])
                     lp->available_bitrate += event.bandwidth;
                 }
             }
+            end_time = event.arrival_time;
         }
     }
+    total_network_bandwidth = slot_capacity * num_slots * p_graph.link_list.size();
     print_result(traffic);
     return 0;
 }
@@ -581,14 +606,14 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
     candidate_light_path_list.push_back(lpath);
 }
 
-void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, int request_id)
+void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* aux_source, Aux_node* aux_destination, Event& event)
 {
     Phy_node& src_node = p_graph.get_node(aux_source->phy_id);
     Phy_node& dst_node = p_graph.get_node(aux_destination->phy_id);
     LightPath* new_path = new LightPath();
 
-    request2lightpath[request_id].push_back(new_path);
-    new_path->requests.insert(request_id);
+    request2lightpath[event.request_id].push_back(new_path);
+    new_path->requests.insert(event.request_id);
     new_path->modulation_level = candidate_path->modulation_level;
     new_path->available_bitrate = candidate_path->available_bitrate;
     new_path->weight = candidate_path->weight;
@@ -600,6 +625,11 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
     int slot_st = new_path->spectrum.slot_st;
     int slot_ed = new_path->spectrum.slot_ed;
     Path& path = new_path->p_path;
+    double used_bandwidth;
+    double wasted_bandwidth;
+    double guardband_bandwidth;
+    double total_bandwidth;
+    double num_links;
 
     switch(candidate_path->type)
     {
@@ -628,6 +658,17 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
         }
         exist_OTDM_light_path_list.push_back(new_path);
         num_OTDM_lightpath_use++;
+        num_OTDM_lightpath_use_BM[(int)event.request_id/(num_requests/num_batch)]++;
+
+        num_links = 1.0 * new_path->p_path.size() - 1;
+        used_bandwidth = num_links * event.bandwidth / new_path->modulation_level;
+        wasted_bandwidth = 0;
+        guardband_bandwidth = num_links * 2 * slot_capacity;
+        total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+        total_bandwidth_utilization += total_bandwidth * event.holding_time;
+        used_bandwidth_utilization += used_bandwidth * event.holding_time;
+        wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+        guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
         break;
 
     case LightPath:: OFDM:
@@ -659,6 +700,17 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
         }
         exist_OFDM_light_path_list.push_back(new_path);
         num_OFDM_lightpath_use++;
+        num_OFDM_lightpath_use_BM[(int)event.request_id/(num_requests/num_batch)]++;
+
+        num_links = 1.0 * new_path->p_path.size() - 1;
+        used_bandwidth = num_links * event.bandwidth / new_path->modulation_level;
+        wasted_bandwidth = num_links * (slot_capacity - (used_bandwidth - slot_capacity * ((int)used_bandwidth / slot_capacity)));
+        guardband_bandwidth = num_links * 2 * slot_capacity;
+        total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+        total_bandwidth_utilization += total_bandwidth * event.holding_time;
+        used_bandwidth_utilization += used_bandwidth * event.holding_time;
+        wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+        guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
         break;
 
     case LightPath:: OFDM_WB:
@@ -693,6 +745,17 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
         }
         exist_OFDM_light_path_list.push_back(new_path);
         num_OFDM_lightpath_use++;
+        num_OFDM_lightpath_use_BM[(int)event.request_id/(num_requests/num_batch)]++;
+
+        num_links = 1.0 * new_path->p_path.size() - 1;
+        used_bandwidth = num_links * event.bandwidth / new_path->modulation_level;
+        wasted_bandwidth = num_links * (slot_capacity - (used_bandwidth - slot_capacity * ((int)used_bandwidth / slot_capacity)));
+        guardband_bandwidth = num_links * slot_capacity;
+        total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+        total_bandwidth_utilization += total_bandwidth * event.holding_time;
+        used_bandwidth_utilization += used_bandwidth * event.holding_time;
+        wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+        guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
         break;
 
     case LightPath:: OFDM_WOB:
@@ -732,6 +795,17 @@ void build_light_path(Phy_graph& p_graph, LightPath* candidate_path, Aux_node* a
         }
         exist_OFDM_light_path_list.push_back(new_path);
         num_OFDM_lightpath_use++;
+        num_OFDM_lightpath_use_BM[(int)event.request_id/(num_requests/num_batch)]++;
+
+        num_links = 1.0 * new_path->p_path.size() - 1;
+        used_bandwidth = num_links * event.bandwidth / new_path->modulation_level;
+        wasted_bandwidth = num_links * (slot_capacity - (used_bandwidth - slot_capacity * ((int)used_bandwidth / slot_capacity)));
+        guardband_bandwidth = num_links * slot_capacity;
+        total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+        total_bandwidth_utilization += total_bandwidth * event.holding_time;
+        used_bandwidth_utilization += used_bandwidth * event.holding_time;
+        wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+        guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
         break;
 
     default:
@@ -744,12 +818,18 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
 {
     Aux_link* aux_link = result[aux_destination];
     Aux_node* aux_node = aux_link->from;
+    double used_bandwidth;
+    double wasted_bandwidth;
+    double guardband_bandwidth;
+    double total_bandwidth;
+    double num_links;
+    double num_links_a_lp;
     while(aux_node != aux_source)
     {
         switch(aux_link->type)
         {
         case Aux_link::candidate_link:
-            build_light_path(p_graph, aux_link->light_path, aux_link->from, aux_link->to, event.request_id);
+            build_light_path(p_graph, aux_link->light_path, aux_link->from, aux_link->to, event);
             break;
         case Aux_link::spectrum_link:
             if(aux_link->light_path->requests.find(event.request_id) == aux_link->light_path->requests.end())
@@ -758,23 +838,50 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
                 aux_link->light_path->requests.insert(event.request_id);
                 aux_link->light_path->available_bitrate -= event.bandwidth;
                 num_OTDM_lightpath_use++;
+                num_OTDM_lightpath_use_BM[(int)event.request_id/(num_requests/num_batch)]++;
             }
+            num_links += 1;
             break;
         case Aux_link::grooming_link:
             num_OEO++;
+            num_OEO_BM[(int)event.request_id/(num_requests/num_batch)]++;
             break;
         case Aux_link::adding_link:
+            if(aux_link->light_path == NULL) // not aux_link for candidate light path layer
+            {
+                break;
+            }
+            if(aux_link->light_path->type == LightPath::OTDM) // aux_link to OTDM grooming layer
+            {
+                num_links = 0;
+            }
             break;
         case Aux_link::dropping_link:
+            if(aux_link->light_path == NULL) // not aux_link for candidate light path layer
+            {
+                break;
+            }
+            if(aux_link->light_path->type == LightPath::OTDM) // aux_link to OTDM grooming layer
+            {
+                num_links_a_lp = 1.0 * (aux_link->light_path->p_path.size() - 1);
+                used_bandwidth = num_links * event.bandwidth / aux_link->light_path->modulation_level;
+                wasted_bandwidth = num_links_a_lp * (event.bandwidth / aux_link->light_path->modulation_level) - used_bandwidth;
+                guardband_bandwidth = 0;
+                total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+                total_bandwidth_utilization += total_bandwidth * event.holding_time;
+                used_bandwidth_utilization += used_bandwidth * event.holding_time;
+                wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+                guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
+            }
             break;
         case Aux_link::pass_through_link:
             break;
         case Aux_link::virtual_adding_link:
-            if(aux_link->light_path == NULL)
+            if(aux_link->light_path == NULL) // not aux_link for candidate light path layer
             {
                 break;
             }
-            if(aux_link->light_path->type == LightPath::OTDM)
+            if(aux_link->light_path->type == LightPath::OTDM) // aux_link to OTDM grooming layer
             {
                 unsigned int i;
                 for(i = 0; i < aux_link->light_path->p_path.size(); i++)
@@ -786,14 +893,15 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
                 }
                 aux_link->light_path->transmitter_index[i] = 1;
                 p_graph.get_node(aux_node->phy_id).num_available_transmitter--;
+                num_links = 0;
             }
             break;
         case Aux_link::virtual_dropping_link:
-            if(aux_link->light_path == NULL)
+            if(aux_link->light_path == NULL) // not aux_link for candidate light path layer
             {
                 break;
             }
-            if(aux_link->light_path->type == LightPath::OTDM)
+            if(aux_link->light_path->type == LightPath::OTDM) // aux_link to OTDM grooming layer
             {
                 unsigned int i;
                 for(i = 0; i < aux_link->light_path->p_path.size(); i++)
@@ -805,6 +913,16 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
                 }
                 aux_link->light_path->receiver_index[i] = 1;
                 p_graph.get_node(aux_node->phy_id).num_available_receiver--;
+
+                num_links_a_lp = 1.0 * (aux_link->light_path->p_path.size() - 1);
+                used_bandwidth = num_links * event.bandwidth / aux_link->light_path->modulation_level;
+                wasted_bandwidth = num_links_a_lp * (event.bandwidth / aux_link->light_path->modulation_level) - used_bandwidth;
+                guardband_bandwidth = 0;
+                total_bandwidth = used_bandwidth + wasted_bandwidth + guardband_bandwidth;
+                total_bandwidth_utilization += total_bandwidth * event.holding_time;
+                used_bandwidth_utilization += used_bandwidth * event.holding_time;
+                wasted_bandwidth_utilization += wasted_bandwidth * event.holding_time;
+                guardband_bandwidth_utilization += guardband_bandwidth * event.holding_time;
             }
             break;
         default:
@@ -1449,30 +1567,70 @@ void print_result(Traffic traffic)
 
     ofstream ofs (filename.str(), ofstream::out);
 
-    ofs << "Bandwidth Blocking Ratio: "<<(double)blocked_bandwidth/total_bandwidth<<endl;
+    double num_OEO_s2 = 0;
+    double num_OFDM_lightpath_use_s2 = 0;
+    double num_OTDM_lightpath_use_s2 = 0;
+    for(int i = 0; i < num_batch; i++)
+    {
+        num_OEO_BM[i] = (double)num_OEO_BM[i]/accepted_requests_BM[i] - (double)num_OEO/accepted_requests;
+        num_OFDM_lightpath_use_BM[i] = (double)num_OFDM_lightpath_use_BM[i]/accepted_requests_BM[i] - (double)num_OFDM_lightpath_use/accepted_requests;
+        num_OTDM_lightpath_use_BM[i] = (double)num_OTDM_lightpath_use_BM[i]/accepted_requests_BM[i] - (double)num_OTDM_lightpath_use/accepted_requests;
+
+        num_OEO_BM[i] = num_OEO_BM[i]*num_OEO_BM[i];
+        num_OFDM_lightpath_use_BM[i] = num_OFDM_lightpath_use_BM[i]*num_OFDM_lightpath_use_BM[i];
+        num_OTDM_lightpath_use_BM[i] = num_OTDM_lightpath_use_BM[i]*num_OTDM_lightpath_use_BM[i];
+
+        num_OEO_s2 += num_OEO_BM[i];
+        num_OFDM_lightpath_use_s2 += num_OFDM_lightpath_use_BM[i];
+        num_OTDM_lightpath_use_s2 += num_OFDM_lightpath_use_BM[i];
+    }
+    num_OEO_s2 /= (num_batch-1);
+    num_OFDM_lightpath_use_s2 /= (num_batch-1);
+    num_OTDM_lightpath_use_s2 /= (num_batch-1);
+
+    num_OEO_s2 /= num_batch;
+    num_OFDM_lightpath_use_s2 /= num_batch;
+    num_OTDM_lightpath_use_s2 /= num_batch;
+
+    num_OEO_s2 = sqrt(num_OEO_s2);
+    num_OFDM_lightpath_use_s2 = sqrt(num_OFDM_lightpath_use_s2);
+    num_OTDM_lightpath_use_s2 = sqrt(num_OTDM_lightpath_use_s2);
+
+    double p_hat;
+
+    p_hat = (double)blocked_bandwidth/total_bandwidth;
+    p_hat = (double)p_hat*(1-p_hat)/total_bandwidth;
+    ofs << "Bandwidth Blocking Ratio: "<<(double)blocked_bandwidth/total_bandwidth<< " +- " << (double)1.960*sqrt(p_hat)<< endl;
     ofs << "Blocked Requests: "<<blocked_requests<<endl;
     ofs << "Accepted Requests: "<<accepted_requests<<endl;
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
-    ofs << "Total number of OEO: "<< num_OEO << endl;
-    ofs << "number of OEO per request: "<<(double)num_OEO/accepted_requests << endl;
-    ofs << "number of OFDM lightpath use: "<< num_OFDM_lightpath_use << endl;
-    ofs << "number of OFDM lightpath use per request: "<< (double)num_OFDM_lightpath_use/accepted_requests << endl;
-    ofs << "number of OTDM lightpath use: "<< num_OTDM_lightpath_use << endl;
-    ofs << "number of OTDM lightpath use per request: "<< (double)num_OTDM_lightpath_use/accepted_requests << endl;
+    p_hat = (double)blocked_requests/num_requests;
+    p_hat = (double)p_hat*(1-p_hat)/num_requests;
+    ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << " +- " << (double)1.960*sqrt(p_hat)<< endl;
+    ofs << "Total Number of OEO: "<< num_OEO << endl;
+    ofs << "Average OEO when Request Succeed: "<<(double)num_OEO/accepted_requests<<" +- t* "<<(double)num_OEO_s2<< endl;
+    ofs << "Number of OFDM lightpath use: "<< num_OFDM_lightpath_use << endl;
+    ofs << "Average OFDM lightpath use when Request Succeed: "<<(double)num_OFDM_lightpath_use/accepted_requests<<" +- t* "<<(double)num_OFDM_lightpath_use_s2<< endl;
+    ofs << "Number of OTDM lightpath use: "<< num_OTDM_lightpath_use << endl;
+    ofs << "Average OTDM lightpath use when Request Succeed: "<<(double)num_OTDM_lightpath_use/accepted_requests<<" +- t* "<<(double)num_OTDM_lightpath_use_s2<< endl;
+    ofs << "Bandwidth Utilization Factor: "<<(double)total_bandwidth_utilization/(total_network_bandwidth*end_time)<<endl;
+    ofs << "Used Bandwidth Utilization Factor: "<<(double)used_bandwidth_utilization/(total_network_bandwidth*end_time)<<endl;
+    ofs << "Wasted Bandwidth Utilization Factor: "<<(double)wasted_bandwidth_utilization/(total_network_bandwidth*end_time)<<endl;
+    ofs << "Guardband Bandwidth Utilization Factor: "<<(double)guardband_bandwidth_utilization/(total_network_bandwidth*end_time)<<endl;
     ofs << "Load:"<< traffic_lambda << endl << endl;
-    ofs << "number of OTDM transceiver per degree: "<< num_OTDM_transceiver << endl;
-    ofs << "number of OFDM transceiver per degree: "<< num_OFDM_transceiver << endl;
-    ofs << "number of OC1 requests: " << traffic.num_OC1_request << endl;
-    ofs << "number of OC3 requests: " << traffic.num_OC3_request << endl;
-    ofs << "number of OC9 requests: " << traffic.num_OC9_request << endl;
-    ofs << "number of OC12 requests: " << traffic.num_OC12_request << endl;
-    ofs << "number of OC18 requests: " << traffic.num_OC18_request << endl;
-    ofs << "number of OC24 requests: " << traffic.num_OC24_request << endl;
-    ofs << "number of OC36 requests: " << traffic.num_OC36_request << endl;
-    ofs << "number of OC48 requests: " << traffic.num_OC48_request << endl;
-    ofs << "number of OC192 requests: " << traffic.num_OC192_request << endl;
-    ofs << "number of OC768 requests: " << traffic.num_OC768_request << endl;
-    ofs << "number of OC3072 requests: " << traffic.num_OC3072_request << endl;
+    ofs << "Number of OTDM transceiver per degree: "<< num_OTDM_transceiver << endl;
+    ofs << "Number of OFDM transceiver per degree: "<< num_OFDM_transceiver << endl;
+    ofs << "Number of OC1 requests: " << traffic.num_OC1_request << endl;
+    ofs << "Number of OC3 requests: " << traffic.num_OC3_request << endl;
+    ofs << "Number of OC9 requests: " << traffic.num_OC9_request << endl;
+    ofs << "Number of OC12 requests: " << traffic.num_OC12_request << endl;
+    ofs << "Number of OC18 requests: " << traffic.num_OC18_request << endl;
+    ofs << "Number of OC24 requests: " << traffic.num_OC24_request << endl;
+    ofs << "Number of OC36 requests: " << traffic.num_OC36_request << endl;
+    ofs << "Number of OC48 requests: " << traffic.num_OC48_request << endl;
+    ofs << "Number of OC192 requests: " << traffic.num_OC192_request << endl;
+    ofs << "Number of OC768 requests: " << traffic.num_OC768_request << endl;
+    ofs << "Number of OC3072 requests: " << traffic.num_OC3072_request << endl;
 
 
     ofs << "Elapsed time: " << (double) ( clock() - start_clk ) / CLOCKS_PER_SEC << " seconds" << endl;
