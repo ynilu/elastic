@@ -4,7 +4,7 @@ RM = rm -f
 # compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
-CFLAGS = -g -Wall -O3 -Wno-c++11-extensions -std=c++11
+CFLAGS = -g -Wall -O3 -std=c++11
 
 # the option to select USNET or NSFNET, USNET is the default
 # DNSF = -D NSF
