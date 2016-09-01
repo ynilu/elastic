@@ -825,7 +825,7 @@ void path_parsing(Phy_graph& p_graph, Aux_node2Aux_link& result, Aux_node* aux_s
     double wasted_bandwidth;
     double guardband_bandwidth;
     double total_bandwidth;
-    double num_links;
+    double num_links = 0;
     double num_links_a_lp;
     while(aux_node != aux_source)
     {
