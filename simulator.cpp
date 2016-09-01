@@ -44,6 +44,9 @@ int transceiver_connection_limit = 10;
 int num_guardband_slot = 1;
 int enable_OTDM = 1;
 int OTDM_threshold = 18;
+int transmission_distance_16QAM = 2000;
+int transmission_distance_8QAM = 4000;
+int transmission_distance_QPSK = 8000;
 
 // request bandwidth share
 int OC1_share = 0;

@@ -17,22 +17,6 @@ class LightPath;
 #include <cmath>
 #include <map>
 
-const double LAUNCH_OSNR = 24.5;
-const double LAUNCH_POWER_DENSITY = 25;
-const double ATTENUATION_PARA = 0.2;
-const double NOISE_PENALTY_FACTOR = 1;
-const double AMPLIFIER_NOISE_FIGURE = 6;
-const double RESIDUAL_DISPERSION_RATIO = 1;
-const double FIBER_NONLINEARITY_COEFFICIENT = 1.22;
-const double VELOCITY_DISPERSION_PARA = 16;
-const double TOTAL_FIBER_BANDWIDTH = 4;
-const double LIGHT_FREQUENCY = 196.1e3;
-const double PLANCK = 6.625e-34;
-const double PI = 3.1416;
-const double QPSK_OSNR = 17.5;
-const double OSNR[5] = {-1, -1, 0, 2, 4};
-const int SPAN_LEN = 82;
-
 struct Graph_info
 {
     char* graph_file;
@@ -42,6 +26,9 @@ struct Graph_info
     int slot_capacity;
     int transceiver_slot_limit;
     int transceiver_connection_limit;
+    int transmission_distance_16QAM;
+    int transmission_distance_8QAM;
+    int transmission_distance_QPSK;
 };
 
 class Transceiver
@@ -121,7 +108,9 @@ public:
     Phy_node_list node_list;
     Phy_link_list link_list;
     Candidate_path_list path_list;
-
+    int transmission_distance_16QAM;
+    int transmission_distance_8QAM;
+    int transmission_distance_QPSK;
 
     void read_network_file(char* graph_file, int num_slots);
 
@@ -130,8 +119,7 @@ public:
     void BFS_find_path(int source, int destination);
     void DFS_back_trace(int current_node, std::vector<Parents>& parents, std::list<CandidatePath>& path_set, CandidatePath& path);
     int get_reach(std::vector<int> path);
-    double d_osnr(int span_num, int span_len);
-    int modlev(std::vector<int>dis_vec);
+    int modlev(int dis);
 
     Phy_node& get_node(int id);
     Phy_link& get_link(int source, int destination);
@@ -144,3 +132,7 @@ public:
 };
 
 #endif /* GRAPH_H */
+
+
+
+

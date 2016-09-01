@@ -2,35 +2,18 @@
 
 using namespace std;
 
-double Phy_graph::d_osnr(int span_num, int span_len){
-    double accum_ASE_noise;
-    double noise_enhancement_factor;
-    double fw, b0, i0, tmp;
-    accum_ASE_noise = 0.5 * span_num * exp(ATTENUATION_PARA * span_len) * PLANCK * LIGHT_FREQUENCY * AMPLIFIER_NOISE_FIGURE;
-    tmp = -ATTENUATION_PARA * RESIDUAL_DISPERSION_RATIO * span_len;
-    noise_enhancement_factor = (2 * (span_num - 1 + exp(tmp * span_num) - span_num * exp(tmp)) * exp(tmp)) / (span_num * pow((exp(tmp) - 1), 2)) + 1;
-    fw = sqrt(ATTENUATION_PARA / abs(VELOCITY_DISPERSION_PARA)) / (2 * PI);
-    b0 = (4 * fw * fw) / TOTAL_FIBER_BANDWIDTH;
-    // fpa = 1 / ((2 * PI) * sqrt(abs(VELOCITY_DISPERSION_PARA) * span_len * RESIDUAL_DISPERSION_RATIO));
-    i0 = sqrt((PI * ATTENUATION_PARA * abs(VELOCITY_DISPERSION_PARA)) / (pow(FIBER_NONLINEARITY_COEFFICIENT, 2) * span_num * noise_enhancement_factor)) * pow(log(TOTAL_FIBER_BANDWIDTH / b0), -0.5);
-    return (LAUNCH_POWER_DENSITY / (accum_ASE_noise + LAUNCH_POWER_DENSITY * pow(LAUNCH_POWER_DENSITY / i0, 2)));
-}
-
-int Phy_graph::modlev(vector<int>dis_vec){
-    int last_len;
-    double now_osnr = LAUNCH_OSNR;
-    for(vector<int>::iterator it = dis_vec.begin(); it != dis_vec.end(); ++it){
-        now_osnr += d_osnr(((*it) / SPAN_LEN), SPAN_LEN);
-        last_len = (*it) % SPAN_LEN;
-        if(last_len){
-            now_osnr += d_osnr(1, last_len);
-        }
-        now_osnr -= NOISE_PENALTY_FACTOR;
+int Phy_graph::modlev(int dis){
+    if(dis <= transmission_distance_16QAM)
+    {
+        return 4;
     }
-    for(int m = 4; m > 1; m--){
-        if(now_osnr > QPSK_OSNR + OSNR[m]){
-            return m;
-        }
+    if(dis <= transmission_distance_8QAM)
+    {
+        return 3;
+    }
+    if(dis <= transmission_distance_QPSK)
+    {
+        return 2;
     }
     return -1;
 }
@@ -39,18 +22,21 @@ int Phy_graph::get_reach(vector<int> path)
 {
     int from;
     int to;
-    vector<int> dis_vec;
+    int dis = 0;
     for(unsigned int node_i = 0; node_i < path.size() - 1; node_i++)
     {
         from = path[node_i];
         to = path[node_i + 1];
-        dis_vec.push_back(get_link(from, to).distance);
+        dis += get_link(from, to).distance;
     }
-    return modlev(dis_vec);
+    return modlev(dis);
 }
 
 Phy_graph::Phy_graph(Graph_info &g_info)
 {
+    this->transmission_distance_QPSK = g_info.transmission_distance_QPSK;
+    this->transmission_distance_8QAM = g_info.transmission_distance_8QAM;
+    this->transmission_distance_16QAM = g_info.transmission_distance_16QAM;
     read_network_file(g_info.graph_file, g_info.num_slots);
     // assign transceivers for each node
     assign_transceivers(g_info.num_OTDM_transceiver, g_info.num_OFDM_transceiver, g_info.transceiver_connection_limit);
