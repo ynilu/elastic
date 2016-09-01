@@ -198,25 +198,6 @@ Aux_node* Aux_graph::get_OTDM_virtual_receiving_node(int phy_id)
 宣告所有 physical graph 需要的物件(ex. physical node, physical link)
 
 ```c++
-const double LAUNCH_OSNR = 24.5;
-const double LAUNCH_POWER_DENSITY = 25;
-const double ATTENUATION_PARA = 0.2;
-const double NOISE_PENALTY_FACTOR = 1;
-const double AMPLIFIER_NOISE_FIGURE = 6;
-const double RESIDUAL_DISPERSION_RATIO = 1;
-const double FIBER_NONLINEARITY_COEFFICIENT = 1.22;
-const double VELOCITY_DISPERSION_PARA = 16;
-const double TOTAL_FIBER_BANDWIDTH = 4;
-const double LIGHT_FREQUENCY = 196.1e3;
-const double PLANCK = 6.625e-34;
-const double PI = 3.1416;
-const double QPSK_OSNR = 17.5;
-const double OSNR[5] = {-1, -1, 0, 2, 4};
-const int SPAN_LEN = 82;
-```
-計算light path reach 相關係數
-
-```c++
 typedef std::vector<int> Path;
 ```
 以 vector<int> 來表示一條 physical path, 記錄 path 經過的 physical node 的 id
@@ -325,6 +306,9 @@ physical graph 的 class
   - `node_list`: 所有的 physical node
   - `link_list`: 所有的 physical link
   - `path_list`: 所有的 candidate path
+  - `transmission_distance_QPSK`: QPSK modulation 所能傳輸的距離
+  - `transmission_distance_8QAM`: 8QAM modulation 所能傳輸的距離
+  - `transmission_distance_16QAM`: 16QAM modulation 所能傳輸的距離
 - function
   - `read_network_file()`: 從指定的檔案中讀取 network 的架構, 並存到對應的資料結構中
   - `assign_transceivers()`: 初始化所有 physical node 的 transceiver 以及可用的 transceiver 數量
@@ -332,7 +316,6 @@ physical graph 的 class
   - `BFS_find_path()`: 對 physical graph 中的一組 node pair 跑 BFS 用來尋找所有的 shortest path
   - `DFS_back_trace()`: 對 `BFS_find_path()` 的結果, 做 DFS 來列出所有的 shortest path
   - `get_reach()`: 計算給定路徑所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
-  - `d_osnr()`: 用來計算 signal 經過一個 physical node 所減少的 OSNR
   - `modlev()`: 計算給定路徑距離所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
   - `get_path_list()`: 取得一個 reference, 指向給定 node pair 的所有 candidate path
   - `CandidatePath()`: constructor of CandidatePath
@@ -343,12 +326,7 @@ physical graph 的 class
 定義所有 graph.hpp 中宣告的 functions
   
 ```c++
-double Phy_graph::d_osnr(int span_num, int span_len)
-```
-用來計算 signal 經過一個 physical node 所減少的 OSNR
-
-```c++
-int Phy_graph::modlev(vector<int>dis_vec)
+int Phy_graph::modlev(int dis)
 ```
 計算給定路徑距離所能使用最高的 modulation level 如果這條路徑過長無法使用任何一種 modulation 建立 light path 則回傳 `-1`
 
