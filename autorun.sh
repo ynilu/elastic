@@ -17,12 +17,12 @@ echo "US_NET_OR_NSFNET      = $US_NET_OR_NSFNET"
 
     ./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 0 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET \
                     < /dev/null \
-                    > "SLICE_${TRAFFIC_LOAD}_${NUMBER_OF_TRANSCEIVER}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.rpt" \
-                    2> "SLICE_${TRAFFIC_LOAD}_${NUMBER_OF_TRANSCEIVER}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.err" &
+                    > "SLICE_${TRAFFIC_LOAD}_${NUMBER_OF_REQUEST}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.rpt" \
+                    2> "SLICE_${TRAFFIC_LOAD}_${NUMBER_OF_REQUEST}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.err" &
     ./run_simulator $TRAFFIC_LOAD $NUMBER_OF_REQUEST 1 $NUMBER_OF_TRANSCEIVER $US_NET_OR_NSFNET \
                     < /dev/null \
-                    > "OTDM_${TRAFFIC_LOAD}_${NUMBER_OF_TRANSCEIVER}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.rpt" \
-                    2> "OTDM_${TRAFFIC_LOAD}_${NUMBER_OF_TRANSCEIVER}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.err" &
+                    > "OTDM_${TRAFFIC_LOAD}_${NUMBER_OF_REQUEST}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.rpt" \
+                    2> "OTDM_${TRAFFIC_LOAD}_${NUMBER_OF_REQUEST}_${NUMBER_OF_TRANSCEIVER}_${US_NET_OR_NSFNET}.err" &
     wait;
     echo "Process done in ${THISHOST}" | mail -s "Process done in ${THISHOST}" michael142536@gmail.com
 
