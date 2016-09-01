@@ -317,9 +317,9 @@ candidate light path 的 class
   - `Phy_graph()`: constructor of Phy_graph
   - `~Phy_graph()`: destructor of Phy_graph
   
-### Aux_graph
+### Phy_graph
 
-auxiliary graph 的 class
+physical graph 的 class
 
 - data
   - `node_list`: 所有的 physical node
