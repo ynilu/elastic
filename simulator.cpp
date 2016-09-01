@@ -601,8 +601,6 @@ void build_candidate_link(Aux_graph& a_graph, LightPath* lpath)
         break;
     }
 
-    lpath->weight *= (lpath->p_path.size() - 1);
-
     Aux_link* c_link = a_graph.create_aux_link(v_t_node, v_r_node, lpath->weight, Aux_link::candidate_link);
 
     c_link->light_path = lpath;              // make aux_link track light path
