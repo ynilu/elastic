@@ -243,6 +243,9 @@ int main(int argc, char *argv[])
     g_info.slot_capacity = slot_capacity;
     g_info.transceiver_slot_limit = transceiver_slot_limit;
     g_info.transceiver_connection_limit = transceiver_connection_limit;
+    g_info.transmission_distance_16QAM = transmission_distance_16QAM;
+    g_info.transmission_distance_8QAM = transmission_distance_8QAM;
+    g_info.transmission_distance_QPSK = transmission_distance_QPSK;
 
     Phy_graph p_graph(g_info);
 
