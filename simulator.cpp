@@ -1601,7 +1601,6 @@ void print_result(Traffic traffic)
     ofs << "Bandwidth Blocking Ratio: "<<(double)blocked_bandwidth/total_bandwidth<< " +- " << (double)1.960*sqrt(p_hat)<< endl;
     ofs << "Blocked Requests: "<<blocked_requests<<endl;
     ofs << "Accepted Requests: "<<accepted_requests<<endl;
-    ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << endl;
     p_hat = (double)blocked_requests/num_requests;
     p_hat = (double)p_hat*(1-p_hat)/num_requests;
     ofs << "Blocking Probability: "<<(double)blocked_requests/num_requests << " +- " << (double)1.960*sqrt(p_hat)<< endl;
