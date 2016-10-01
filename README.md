@@ -640,6 +640,9 @@ long long Traffic::nextrand( long long& seed )
 - `num_guardband_slot`: guard band 所需要的 slot 數
 - `enable_OTDM`: 是否使用 OTDM light path, 0 -> OFDM, 1 -> OFDM + OTDM
 - `OTDM_threshold`: 決定是否要傾向使用 OTDM light path 的 threshold, 一個 light path 的剩餘 bandwidth 量如果大於這個 threshold 則傾向使用 OTDM
+- `transmission_distance_QPSK`: QPSK modulation 所能傳輸的距離
+- `transmission_distance_8QAM`: 8QAM modulation 所能傳輸的距離
+- `transmission_distance_16QAM`: 16QAM modulation 所能傳輸的距離
 - `OC1_share`: OC1 request 所佔的份數
 - `OC3_share`: OC3 request 所佔的份數
 - `OC9_share`: OC9 request 所佔的份數
